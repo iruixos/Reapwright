@@ -1,0 +1,35 @@
+# Right-click harvesting works on mature crops only.
+allowed-tools:
+  - DIAMOND_HOE
+  - NETHERITE_HOE
+
+# Only crops with an Ageable block state are supported.
+enabled-crops:
+  - WHEAT
+  - CARROTS
+  - POTATOES
+  - BEETROOTS
+  - NETHER_WART
+
+# If a harvested crop does not drop a replantable item, use one from inventory.
+use-inventory-for-replanting: true
+
+# Harvested items are inserted into inventory; overflow is dropped at the crop.
+insert-drops-into-inventory: true
+
+# A successful harvest attempts to consume one durability point.
+# Unbreaking reduces the probability of damage using vanilla's 1/(level+1) rule.
+consume-durability: true
+
+# Add 0..Fortune level bonus wheat/beetroot produce on successful harvest.
+# Vanilla loot tables already boost seeds; these remain unchanged.
+fortune-boost-produce: true
+
+# Width and length of the square harvested by one right-click.
+# 1 = 1 block, 2 = 2x2, 3 = 3x3, etc. Allowed range: 1..9.
+# Only mature crops of the same type, on the same Y level, are harvested.
+# Odd sizes center on the clicked block. Even sizes automatically select the
+# square containing the clicked block with the most connected mature crops.
+# Only orthogonally adjacent crops are harvested (not diagonal-only crops).
+# Each harvested block consumes its own replanting item and durability attempt.
+harvest-area-size: 1

@@ -1,0 +1,19 @@
+name: Reapwright
+version: '1.3.0'
+main: com.iruixos.reapwright.ReapwrightPlugin
+api-version: '26.3'
+author: iruixos
+folia-supported: false
+description: Right-click mature crops with a diamond or netherite hoe to harvest and replant.
+commands:
+  reapwright:
+    description: Reapwright administration
+    usage: /reapwright reload
+    permission: reapwright.admin
+permissions:
+  reapwright.use:
+    description: Allows harvesting with supported hoes
+    default: true
+  reapwright.admin:
+    description: Allows reloading Reapwright configuration
+    default: op
