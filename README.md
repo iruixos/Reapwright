@@ -1,3 +1,5 @@
+![Reapwright Banner](assets/banner.png)
+
 # Reapwright
 
 **Reapwright** is a lightweight farming quality-of-life plugin for **Paper 26.3**. Right-click a fully grown crop with a diamond or netherite hoe to harvest it and immediately replant it, using a planting item from the harvested drops or, if necessary, your inventory. Configure the harvest area from **1×1 to 9×9**.
