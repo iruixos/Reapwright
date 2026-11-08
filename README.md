@@ -1,4 +1,4 @@
-![Reapwright Banner](blob/main/assets/banner.png)
+![Reapwright Banner](assets/header.png)
 
 # Reapwright
 
