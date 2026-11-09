@@ -38,7 +38,7 @@ All supported crops must be fully grown. Other crops are not implemented by the 
 ## Installation
 
 1. Build the plugin from source (see below), or obtain a compiled release JAR.
-2. Stop your Paper server and place `reapwright-1.3.0.jar` in the `plugins/` directory.
+2. Stop your Paper server and place the downloaded Reapwright `.jar` file in the `plugins/` directory.
 3. Remove any older Reapwright JAR so only one version is installed.
 4. Start the server to generate `plugins/Reapwright/config.yml`.
 5. Adjust the configuration and run `/reapwright reload` (or restart the server).
@@ -153,7 +153,6 @@ Change the JDK path to match your installation. The Maven project compiles for *
 ## Project information
 
 - **Plugin:** Reapwright
-- **Current documented version:** 1.4.4
 - **Author:** iruixos
 - **Platform:** Paper
 - **Package:** `com.iruixos.reapwright`

@@ -41,7 +41,28 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
         loadSettings();
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getScheduler().runTaskTimer(this, this::tickBrewing, 1L, 1L);
-        getLogger().info("Reapwright enabled.");
+        printStartupBanner();
+    }
+
+    private void printStartupBanner() {
+        String version = getPluginMeta().getVersion();
+        String minecraftVersion = org.bukkit.Bukkit.getMinecraftVersion();
+        String[] lines = {
+            "[R] Reapwright v" + version,
+            "    by iruixos",
+            "    Paper " + minecraftVersion + " / MC " + minecraftVersion
+        };
+        int contentWidth = 0;
+        for (String line : lines) contentWidth = Math.max(contentWidth, line.length());
+        int innerWidth = contentWidth + 2;
+        String border = "+" + "-".repeat(innerWidth) + "+";
+        getLogger().info(" ");
+        getLogger().info("  " + border);
+        for (String line : lines) {
+            getLogger().info("  | " + line + " ".repeat(contentWidth - line.length()) + " |");
+        }
+        getLogger().info("  " + border);
+        getLogger().info(" ");
     }
 
     private Set<Material> materials(String key) {
