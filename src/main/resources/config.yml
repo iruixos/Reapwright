@@ -33,3 +33,15 @@ fortune-boost-produce: true
 # Only orthogonally adjacent crops are harvested (not diagonal-only crops).
 # Each harvested block consumes its own replanting item and durability attempt.
 harvest-area-size: 1
+
+# Poisonous potato quality-of-life features.
+poisonous-potatoes:
+  composting:
+    enabled: true
+    # Probability (0.0 to 1.0) of raising the composter one level per potato.
+    chance: 0.65
+  brewing:
+    # Use poisonous potatoes instead of spider eyes to brew Awkward -> Poison.
+    # Uses one potato per brewing cycle (up to three bottles), standard blaze powder fuel
+    # and a 400-tick (20-second) brewing duration.
+    enabled: true

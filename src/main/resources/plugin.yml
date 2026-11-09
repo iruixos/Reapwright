@@ -1,5 +1,5 @@
 name: Reapwright
-version: '1.3.0'
+version: '1.4.4'
 main: com.iruixos.reapwright.ReapwrightPlugin
 api-version: '26.3'
 author: iruixos

@@ -29,6 +29,9 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class ReapwrightPlugin extends JavaPlugin implements Listener {
+    private final java.util.Map<org.bukkit.Location, Integer> customBrews = new java.util.HashMap<>();
+    private final java.util.Set<org.bukkit.Location> watchedStands = new java.util.HashSet<>();
+    private boolean warnedProgressApi = false;
     private Set<Material> allowedTools;
     private Set<Material> enabledCrops;
     private int harvestWidth;
@@ -37,6 +40,7 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
         saveDefaultConfig();
         loadSettings();
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getScheduler().runTaskTimer(this, this::tickBrewing, 1L, 1L);
         getLogger().info("Reapwright enabled.");
     }
 
@@ -55,6 +59,258 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
         allowedTools = materials("allowed-tools");
         enabledCrops = materials("enabled-crops");
         harvestWidth = Math.max(1, Math.min(9, getConfig().getInt("harvest-area-size", 1)));
+    }
+
+    @Override public void onDisable() { customBrews.clear(); watchedStands.clear(); }
+
+    // Composter support: mimic the standard potato chance, without changing global vanilla recipes.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onCompost(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (!getConfig().getBoolean("poisonous-potatoes.composting.enabled", true)) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) return;
+        Block block = event.getClickedBlock();
+        if (block == null || block.getType() != Material.COMPOSTER) return;
+        Player player = event.getPlayer();
+        ItemStack held = player.getInventory().getItemInMainHand();
+        if (held.getType() != Material.POISONOUS_POTATO) return;
+        if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled level)) return;
+        if (level.getLevel() >= 8) return;
+        event.setCancelled(true);
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            if (held.getAmount() == 1) player.getInventory().setItemInMainHand(null);
+            else held.setAmount(held.getAmount() - 1);
+        }
+        double chance = Math.max(0, Math.min(1, getConfig().getDouble("poisonous-potatoes.composting.chance", 0.65)));
+        boolean success = ThreadLocalRandom.current().nextDouble() < chance;
+        if (success) {
+            level.setLevel(level.getLevel() + 1);
+            block.setBlockData(level);
+        }
+        block.getWorld().playEffect(block.getLocation(), org.bukkit.Effect.COMPOSTER_FILL_ATTEMPT,
+                success ? 1 : 0);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onStandOpen(PlayerInteractEvent event) {
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null
+                && event.getClickedBlock().getType() == Material.BREWING_STAND)
+            watchedStands.add(event.getClickedBlock().getLocation());
+    }
+
+    // Vanilla BrewingStandMenu rejects poisonous potatoes in its ingredient slot.
+    // Handle cursor placement ourselves, before vanilla slot validation.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPotatoIngredientClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if (!getConfig().getBoolean("poisonous-potatoes.brewing.enabled", true)) return;
+        if (!(event.getView().getTopInventory().getHolder() instanceof org.bukkit.block.BrewingStand stand)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        watchedStands.add(stand.getLocation());
+        org.bukkit.inventory.Inventory top = event.getView().getTopInventory();
+        // Brewing stand slots: 0-2 bottles, 3 ingredient, 4 fuel.
+        if (event.getRawSlot() == 3) {
+            ItemStack cursor = event.getCursor();
+            if (cursor == null || cursor.getType() != Material.POISONOUS_POTATO) return;
+            if (event.getClick() != org.bukkit.event.inventory.ClickType.LEFT
+                    && event.getClick() != org.bukkit.event.inventory.ClickType.RIGHT) return;
+            ItemStack existing = top.getItem(3);
+            if (existing != null && !existing.isEmpty() && !existing.isSimilar(cursor)) return;
+            int space = existing == null || existing.isEmpty() ? cursor.getMaxStackSize()
+                    : existing.getMaxStackSize() - existing.getAmount();
+            if (space <= 0) return;
+            int moved = event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT ? 1
+                    : Math.min(space, cursor.getAmount());
+            event.setCancelled(true);
+            ItemStack placed = cursor.clone();
+            placed.setAmount((existing == null || existing.isEmpty() ? 0 : existing.getAmount()) + moved);
+            top.setItem(3, placed);
+            ItemStack remainder = cursor.clone();
+            remainder.setAmount(cursor.getAmount() - moved);
+            player.setItemOnCursor(remainder.getAmount() == 0 ? null : remainder);
+            return;
+        }
+        // Shift-click from player inventory: route poisonous potatoes into ingredient slot.
+        if (event.getRawSlot() >= top.getSize() && event.isShiftClick()
+                && event.getCurrentItem() != null
+                && event.getCurrentItem().getType() == Material.POISONOUS_POTATO) {
+            ItemStack source = event.getCurrentItem();
+            ItemStack existing = top.getItem(3);
+            if (existing != null && !existing.isEmpty() && !existing.isSimilar(source)) return;
+            int space = existing == null || existing.isEmpty() ? source.getMaxStackSize()
+                    : existing.getMaxStackSize() - existing.getAmount();
+            if (space <= 0) return;
+            event.setCancelled(true);
+            int moved = Math.min(space, source.getAmount());
+            ItemStack placed = source.clone();
+            placed.setAmount((existing == null || existing.isEmpty() ? 0 : existing.getAmount()) + moved);
+            top.setItem(3, placed);
+            ItemStack remainder = source.clone();
+            remainder.setAmount(source.getAmount() - moved);
+            event.setCurrentItem(remainder.getAmount() == 0 ? null : remainder);
+        }
+    }
+
+    // Dragging a potato across the ingredient slot is blocked by vanilla; handle
+    // a drag that targets only the ingredient slot, without altering other slots.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPotatoIngredientDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!getConfig().getBoolean("poisonous-potatoes.brewing.enabled", true)) return;
+        if (!(event.getView().getTopInventory().getHolder() instanceof org.bukkit.block.BrewingStand stand)) return;
+        if (!event.getRawSlots().equals(java.util.Set.of(3))) return;
+        ItemStack cursor = event.getOldCursor();
+        if (cursor == null || cursor.getType() != Material.POISONOUS_POTATO) return;
+        ItemStack existing = event.getView().getTopInventory().getItem(3);
+        if (existing != null && !existing.isEmpty()) return;
+        ItemStack placed = event.getNewItems().get(3);
+        if (placed == null || placed.getType() != Material.POISONOUS_POTATO) return;
+        event.setCancelled(true);
+        watchedStands.add(stand.getLocation());
+        // InventoryDragEvent forbids inventory modifications in-handler.
+        ItemStack placedCopy = placed.clone();
+        ItemStack cursorCopy = event.getCursor() == null ? null : event.getCursor().clone();
+        getServer().getScheduler().runTask(this, () -> {
+            if (!(event.getWhoClicked() instanceof Player player) || !player.isOnline()) return;
+            event.getView().getTopInventory().setItem(3, placedCopy);
+            player.setItemOnCursor(cursorCopy);
+        });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onStandInventory(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof org.bukkit.block.BrewingStand stand)
+            watchedStands.add(stand.getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onHopperMove(org.bukkit.event.inventory.InventoryMoveItemEvent event) {
+        if (event.getDestination().getHolder() instanceof org.bukkit.block.BrewingStand stand)
+            watchedStands.add(stand.getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onStandPlace(org.bukkit.event.block.BlockPlaceEvent event) {
+        if (event.getBlockPlaced().getType() == Material.BREWING_STAND)
+            watchedStands.add(event.getBlockPlaced().getLocation());
+    }
+
+    @EventHandler
+    public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
+        for (org.bukkit.block.BlockState state : event.getChunk().getTileEntities()) {
+            if (state instanceof org.bukkit.block.BrewingStand) watchedStands.add(state.getLocation());
+        }
+    }
+
+    private boolean awkward(ItemStack item) {
+        return item != null && item.getType() == Material.POTION
+                && item.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta meta
+                && meta.getBasePotionType() == org.bukkit.potion.PotionType.AWKWARD;
+    }
+
+    // Send the brewing GUI property to viewers only. Do not update the brewing
+    // block state: Minecraft does not recognize poisonous potatoes as an
+    // ingredient and can reset the native timer or overwrite custom results.
+    private void showCustomProgress(org.bukkit.block.BrewingStand stand, int ticks) {
+        for (org.bukkit.entity.HumanEntity viewer : stand.getInventory().getViewers()) {
+            if (!(viewer instanceof Player player)) continue;
+            org.bukkit.inventory.InventoryView view = player.getOpenInventory();
+            if (view.getTopInventory().getType() != org.bukkit.event.inventory.InventoryType.BREWING) continue;
+            if (!view.getTopInventory().equals(stand.getInventory())) continue;
+            try {
+                // Bukkit exposes this client-only container property on HumanEntity.
+                // Reflective invocation tolerates API variants where the method
+                // moved between HumanEntity and InventoryView.
+                Class<?> propertyType = Class.forName("org.bukkit.inventory.InventoryView$Property");
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                Object brewTime = java.lang.Enum.valueOf((Class<? extends Enum>) propertyType.asSubclass(Enum.class), "BREW_TIME");
+                try {
+                    player.getClass().getMethod("setWindowProperty", propertyType, int.class)
+                            .invoke(player, brewTime, ticks);
+                } catch (NoSuchMethodException missingOnPlayer) {
+                    view.getClass().getMethod("setProperty", propertyType, int.class)
+                            .invoke(view, brewTime, ticks);
+                }
+            } catch (ReflectiveOperationException | IllegalArgumentException ex) {
+                if (!warnedProgressApi) {
+                    warnedProgressApi = true;
+                    getLogger().warning("Could not send brewing progress to client via Bukkit inventory API: " + ex);
+                }
+            }
+        }
+    }
+
+    private void tickBrewing() {
+        if (!getConfig().getBoolean("poisonous-potatoes.brewing.enabled", true)) {
+            customBrews.clear();
+            return;
+        }
+        java.util.Iterator<org.bukkit.Location> iterator = watchedStands.iterator();
+        while (iterator.hasNext()) {
+            org.bukkit.Location location = iterator.next();
+            if (location.getWorld() == null || !location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+                customBrews.remove(location); iterator.remove(); continue;
+            }
+            if (!(location.getBlock().getState() instanceof org.bukkit.block.BrewingStand stand)) {
+                customBrews.remove(location); iterator.remove(); continue;
+            }
+            org.bukkit.inventory.BrewerInventory inv = stand.getInventory();
+            ItemStack ingredient = inv.getIngredient();
+            boolean potato = ingredient != null && ingredient.getType() == Material.POISONOUS_POTATO;
+            boolean hasAwkward = false;
+            for (int slot = 0; slot < 3; slot++) if (awkward(inv.getItem(slot))) hasAwkward = true;
+            if (!potato || !hasAwkward) {
+                if (customBrews.remove(location) != null) showCustomProgress(stand, 0);
+                continue;
+            }
+            Integer remaining = customBrews.get(location);
+            if (remaining == null) {
+                // Leave vanilla recipes and their animation entirely alone.
+                if (stand.getBrewingTime() > 0) continue;
+                int fuel = stand.getFuelLevel();
+                if (fuel <= 0) {
+                    ItemStack fuelStack = inv.getFuel();
+                    if (fuelStack == null || fuelStack.getType() != Material.BLAZE_POWDER) continue;
+                    if (fuelStack.getAmount() == 1) inv.setFuel(null);
+                    else fuelStack.setAmount(fuelStack.getAmount() - 1);
+                    fuel = 20;
+                }
+                // Fuel-level changes require an update to the block state, but
+                // must happen BEFORE potion inventory writes.
+                stand.setFuelLevel(fuel - 1);
+                stand.update(false, false);
+                remaining = 400;
+            }
+            remaining--;
+            if (remaining > 0) {
+                customBrews.put(location, remaining);
+                showCustomProgress(stand, remaining);
+                continue;
+            }
+            customBrews.remove(location);
+            // Do not update the block state here: the live inventory must not
+            // be overwritten by a stale BlockState snapshot.
+            inv = ((org.bukkit.block.BrewingStand) location.getBlock().getState()).getInventory();
+            ingredient = inv.getIngredient();
+            if (ingredient == null || ingredient.getType() != Material.POISONOUS_POTATO) {
+                showCustomProgress(stand, 0);
+                continue;
+            }
+            int converted = 0;
+            for (int slot = 0; slot < 3; slot++) {
+                ItemStack potion = inv.getItem(slot);
+                if (!awkward(potion)) continue;
+                ItemStack result = potion.clone();
+                org.bukkit.inventory.meta.PotionMeta meta = (org.bukkit.inventory.meta.PotionMeta) result.getItemMeta();
+                meta.setBasePotionType(org.bukkit.potion.PotionType.POISON);
+                result.setItemMeta(meta);
+                inv.setItem(slot, result);
+                converted++;
+            }
+            if (converted > 0) {
+                if (ingredient.getAmount() == 1) inv.setIngredient(null);
+                else ingredient.setAmount(ingredient.getAmount() - 1);
+                location.getWorld().playEffect(location, org.bukkit.Effect.BREWING_STAND_BREW, 0);
+            }
+            showCustomProgress(stand, 0);
+        }
     }
 
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

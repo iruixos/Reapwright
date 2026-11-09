@@ -1,8 +1,8 @@
-![Reapwright Banner](assets/header.png)
+![Reapwright Banner](assets/header2.png)
 
 # Reapwright
 
-**Reapwright** is a lightweight farming quality-of-life plugin for **Paper 26.3**. Right-click a fully grown crop with a diamond or netherite hoe to harvest it and immediately replant it, using a planting item from the harvested drops or, if necessary, your inventory. Configure the harvest area from **1×1 to 9×9**.
+**Reapwright** is a lightweight farming quality-of-life plugin for **Paper servers**. Right-click a fully grown crop with a diamond or netherite hoe to harvest it and immediately replant it, using a planting item from the harvested drops or, if necessary, your inventory. Configure the harvest area from **1×1 to 9×9**.
 
 ## Features
 
@@ -136,7 +136,7 @@ From the project root (containing `pom.xml`):
 mvn clean package
 ```
 
-The resulting JAR should be at `target/reapwright-1.3.0.jar`.
+The resulting JAR should be at `target/reapwright-VERSION.jar`.
 
 Change the JDK path to match your installation. The Maven project compiles for **Java 25**.
 
@@ -153,7 +153,7 @@ Change the JDK path to match your installation. The Maven project compiles for *
 ## Project information
 
 - **Plugin:** Reapwright
-- **Current documented version:** 1.3.0
+- **Current documented version:** 1.4.4
 - **Author:** iruixos
 - **Platform:** Paper
 - **Package:** `com.iruixos.reapwright`
