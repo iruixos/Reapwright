@@ -35,6 +35,8 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
     private Set<Material> allowedTools;
     private Set<Material> enabledCrops;
     private int harvestWidth;
+    private boolean harvestParticles;
+    private boolean harvestSound;
 
     @Override public void onEnable() {
         saveDefaultConfig();
@@ -80,6 +82,8 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
         allowedTools = materials("allowed-tools");
         enabledCrops = materials("enabled-crops");
         harvestWidth = Math.max(1, Math.min(9, getConfig().getInt("harvest-area-size", 1)));
+        harvestParticles = getConfig().getBoolean("harvest-effects.particles", true);
+        harvestSound = getConfig().getBoolean("harvest-effects.sound", true);
     }
 
     @Override public void onDisable() { customBrews.clear(); watchedStands.clear(); }
@@ -109,6 +113,52 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
         }
         block.getWorld().playEffect(block.getLocation(), org.bukkit.Effect.COMPOSTER_FILL_ATTEMPT,
                 success ? 1 : 0);
+    }
+
+    // Vanilla composters do not accept poisonous potatoes. Handle hopper insertion
+    // through the inventory transfer event while leaving ordinary items untouched.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPoisonousPotatoHopper(org.bukkit.event.inventory.InventoryMoveItemEvent event) {
+        if (!getConfig().getBoolean("poisonous-potatoes.composting.enabled", true)) return;
+        if (event.getItem().getType() != Material.POISONOUS_POTATO) return;
+        org.bukkit.Location destination = event.getDestination().getLocation();
+        if (destination == null || destination.getWorld() == null) return;
+        Block block = destination.getBlock();
+        if (block.getType() != Material.COMPOSTER) return;
+        if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled level)) return;
+        if (level.getLevel() >= 8) return;
+
+        // Prevent vanilla insertion (which rejects the item), then consume exactly
+        // one item from the source and perform a custom composting attempt.
+        event.setCancelled(true);
+        org.bukkit.inventory.Inventory source = event.getSource();
+        int slot = -1;
+        for (int i = 0; i < source.getSize(); i++) {
+            ItemStack stack = source.getItem(i);
+            if (stack != null && stack.getType() == Material.POISONOUS_POTATO
+                    && stack.isSimilar(event.getItem())) { slot = i; break; }
+        }
+        if (slot < 0) return;
+        final int sourceSlot = slot;
+        // Defer inventory mutation until after the cancelled transfer completes.
+        getServer().getScheduler().runTask(this, () -> {
+            if (block.getType() != Material.COMPOSTER) return;
+            if (!(block.getBlockData() instanceof org.bukkit.block.data.Levelled current)
+                    || current.getLevel() >= 8) return;
+            ItemStack stack = source.getItem(sourceSlot);
+            if (stack == null || stack.getType() != Material.POISONOUS_POTATO) return;
+            if (stack.getAmount() <= 1) source.setItem(sourceSlot, null);
+            else { stack.setAmount(stack.getAmount() - 1); source.setItem(sourceSlot, stack); }
+            double chance = Math.max(0, Math.min(1,
+                    getConfig().getDouble("poisonous-potatoes.composting.chance", 0.65)));
+            boolean success = ThreadLocalRandom.current().nextDouble() < chance;
+            if (success) {
+                current.setLevel(current.getLevel() + 1);
+                block.setBlockData(current);
+            }
+            block.getWorld().playEffect(block.getLocation(), org.bukkit.Effect.COMPOSTER_FILL_ATTEMPT,
+                    success ? 1 : 0);
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -371,9 +421,18 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
             if (!allowedTools.contains(inventory.getItemInMainHand().getType())) break;
             if (!(candidate.getBlockData() instanceof Ageable candidateAge)
                     || candidateAge.getAge() < candidateAge.getMaximumAge()) continue;
-            if (harvestOne(player, inventory, hoe, candidate, candidateAge)) harvested++;
+            if (harvestOne(player, inventory, hoe, candidate, candidateAge)) {
+                harvested++;
+                if (harvestParticles) candidate.getWorld().spawnParticle(
+                        org.bukkit.Particle.HAPPY_VILLAGER,
+                        candidate.getLocation().add(0.5, 0.55, 0.5), 5, 0.22, 0.18, 0.22, 0);
+            }
         }
-        if (harvested > 0) event.setCancelled(true);
+        if (harvested > 0) {
+            event.setCancelled(true);
+            if (harvestSound) player.playSound(block.getLocation(),
+                    org.bukkit.Sound.ITEM_CROP_PLANT, 0.65f, 1.15f);
+        }
     }
 
     /**
