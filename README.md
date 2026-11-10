@@ -15,6 +15,19 @@
 - **Durability and Unbreaking:** Each successfully harvested crop attempts to use one durability point, with Unbreaking reducing the chance. Creative mode does not consume durability.
 - **Mending:** Not overridden; vanilla Mending still repairs eligible tools when XP is collected. Harvesting does **not** generate XP for Mending.
 - **Inventory delivery:** Sends harvested items to inventory by default; overflow drops at the crop. Can be configured to drop all items instead.
+- **Harvest feedback:** Green `HAPPY_VILLAGER` particles appear at successfully harvested crops, with one harvesting sound per action. Particles and sound can be toggled independently.
+- **Poisonous potato composting:** Compost poisonous potatoes manually or feed them into composters using hoppers, with a configurable success chance (65% by default).
+- **Poisonous potato brewing:** Use poisonous potatoes as an alternative to spider eyes when brewing Potions of Poison from Awkward Potions. Vanilla brewing remains available.
+
+## Poisonous potatoes
+
+### Composting
+
+Poisonous potatoes can be added to composters by players **or transferred automatically by hoppers**. Each attempt consumes one poisonous potato and uses the configured chance of increasing the compost level (65% by default). Ordinary compostable items continue to behave normally. Disable this feature with `poisonous-potatoes.composting.enabled: false`.
+
+### Brewing
+
+Place a poisonous potato in a Brewing Stand ingredient slot to brew **Potions of Poison** from up to three Awkward Potions. The custom recipe uses normal brewing fuel and progress feedback; existing vanilla recipes, including spider-eye brewing, remain supported. Disable this feature with `poisonous-potatoes.brewing.enabled: false`.
 
 ## Supported crops
 
@@ -45,7 +58,7 @@ All supported crops must be fully grown. Other crops are not implemented by the 
 
 ## Usage
 
-Hold a **diamond** or **netherite hoe** in your main hand and **right-click a fully grown supported crop**. Reapwright harvests the eligible crops in the selected area, replants each one, and delivers the remaining drops.
+Hold a **diamond** or **netherite hoe** in your main hand and **right-click a fully grown supported crop**. Reapwright harvests the eligible crops in the selected area, replants each one, and delivers the remaining drops. Successful harvesting also produces optional green particles and a sound.
 
 For example, setting `harvest-area-size: 3` allows harvesting up to nine connected mature crops of the same type in one action. The clicked crop is always included; the chosen 3×3 square may shift toward a denser patch instead of remaining centered on the clicked block. Only crops connected within that square are included.
 
@@ -81,6 +94,19 @@ fortune-boost-produce: true
 
 # Maximum square side length, clamped to 1..9.
 harvest-area-size: 1
+
+# Harvesting feedback (particles at crops; one sound per action).
+harvest-effects:
+  particles: true
+  sound: true
+
+# Additional uses for poisonous potatoes.
+poisonous-potatoes:
+  composting:
+    enabled: true
+    chance: 0.65
+  brewing:
+    enabled: true
 ```
 
 | Setting | Type | Default | Description |
@@ -92,6 +118,11 @@ harvest-area-size: 1
 | `consume-durability` | Boolean | `true` | Attempt durability damage for each harvested crop (except in Creative mode). |
 | `fortune-boost-produce` | Boolean | `true` | Add a uniformly random 0 through Fortune level extra wheat or beetroot per harvested crop. Vanilla loot drops, including seed bonuses, remain in effect. |
 | `harvest-area-size` | Integer | `1` | Side length of the maximum harvesting square, from 1 to 9 inclusive. Out-of-range values are clamped to the nearest limit. |
+| `harvest-effects.particles` | Boolean | `true` | Show green particles at successfully harvested crops. |
+| `harvest-effects.sound` | Boolean | `true` | Play one harvesting sound per successful harvesting action. |
+| `poisonous-potatoes.composting.enabled` | Boolean | `true` | Allow manual and hopper-fed poisonous potato composting. |
+| `poisonous-potatoes.composting.chance` | Decimal | `0.65` | Probability (0.0–1.0) of raising the composter level per poisonous potato consumed. |
+| `poisonous-potatoes.brewing.enabled` | Boolean | `true` | Allow poisonous potatoes as an alternative brewing ingredient for Potions of Poison. |
 
 ### Harvest area examples
 
