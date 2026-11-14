@@ -51,3 +51,237 @@ poisonous-potatoes:
     # Uses one potato per brewing cycle (up to three bottles), standard blaze powder fuel
     # and a 400-tick (20-second) brewing duration.
     enabled: true
+
+# Tree Feller (opt-in experimental module; disabled by default).
+# All axe types in Survival mode; requires reapwright.treefeller.
+# Wear is rolled once per removed LOG with Unbreaking (chance 1/(level+1));
+# foliage/attachments do not consume axe durability. A harvest is refused
+# if the pre-rolled wear would consume the final durability point.
+# Mending uses vanilla XP-orb repair; automated felling does not grant repairs.
+# Creaking Hearts: Silk Touch drops the Heart, otherwise resin clumps scale
+# with Fortune. Naturally generated Hearts can grant experience.
+# Bee Nests and Beehives: Silk Touch preserves the block, resident bees, and
+# honey level; without Silk Touch, honeycomb drops and residents emerge angry.
+# Nearby bees associated with the broken hive are angered in either case.
+# WorldGuard and CoreProtect integration is optional and NOT runtime verified.
+# Partial-harvest rollback is not yet implemented; back up test worlds.
+tree-feller:
+  enabled: false
+  # UNVERIFIED optional integrations: opt in only after testing on a backup world.
+  # SAFETY: If WorldGuard/CoreProtect is installed but its integration is disabled,
+  # Tree Feller refuses automatic harvesting (it will NOT bypass protected regions
+  # or make unlogged changes). Ordinary crop harvesting remains available.
+  integrations:
+    worldguard: false
+    coreprotect: false
+  auto-replant: true
+  # When true, an eligible Silk Touch axe can replant the harvested tree for free.
+  # One sapling is placed per verified planting position (four for a 2x2 tree).
+  # This grants placement only: no saplings are added to drops or inventory.
+  # Set false to require harvested saplings or inventory fallback as normal.
+  # Has no effect when auto-replant is false; Nether fungi retain their own
+  # free-replant behaviour regardless of this setting.
+  free-silk-touch-replant: true
+  break-leaves: true
+  # Two delayed, bounded passes after felling (3s and another 5s later).
+  # Repairs unsupported leaf distances and removes orphaned ordinary vines.
+  # Only scans the felled tree region, not all loaded chunks.
+  orphan-leaf-cleanup: true
+  # Development diagnostics: one Mangrove island summary per successful scan.
+  # Disable during normal play to avoid console noise.
+  mangrove-debug: false
+  # Detailed per-harvest chat diagnostics (counts, replant and special-block
+  # summaries, incomplete-harvest codes). Disabled for normal gameplay.
+  # Important warnings and axe-break acknowledgement are always displayed.
+  debug-messages: false
+  # Hide repeated identical Tree Feller notices for this many seconds per player.
+  # Different warnings still appear; clickable axe-break offers are never suppressed.
+  # 0 disables repeat suppression. Valid range: 0–60 seconds.
+  message-repeat-cooldown-seconds: 10
+
+  # Optional follow-on felling; original tree detection is always single-tree.
+  domino:
+    enabled: false
+    max-additional-trees: 2
+
+  # Each harvested natural leaf independently rolls for its planting item.
+  # Percentages before Fortune; Fortune I/II/III use 1.25x / 1.667x / 2x.
+  # Normal vanilla saplings: 5%; Jungle: Oak's 5% baseline.
+  # Mangrove leaves do not normally drop propagules in vanilla; configured 1.0%.
+  # Missing species entries revert to vanilla drops. Ordinary leaf loot is preserved.
+  # Planted saplings consume generated drops first, then inventory fallback.
+  # Set enabled: false to disable Reapwright's custom sapling rates.
+  # Harvested leaves then use their original vanilla sapling drops
+  # (including vanilla Fortune behaviour); rates below are ignored.
+  sapling-drops:
+    enabled: true
+    rates:
+      OAK: 5.0
+      BIRCH: 5.0
+      SPRUCE: 5.0
+      JUNGLE: 5.0
+      ACACIA: 5.0
+      DARK_OAK: 5.0
+      PALE_OAK: 5.0
+      CHERRY: 5.0
+      POPLAR: 5.0
+      AZALEA: 5.0
+      FLOWERING_AZALEA: 5.0
+      MANGROVE: 1.0
+
+  # Bonus loot: ONE independent percentage roll per item entry, per successfully felled tree.
+  # Example: HONEYCOMB chance: 15.0 means a 15% chance to award honeycomb for that tree,
+  # regardless of how many logs or leaves it contained. Each other entry rolls separately,
+  # so multiple different rewards (or none) may be awarded on the same tree.
+  # On success, the quantity is randomly selected between min and max (inclusive).
+  # These are BONUS drops in addition to ordinary harvested blocks and sapling drops.
+  # Bonus rolls require Diamond or Netherite axes; all Fortune levels are eligible.
+  # Fortune increases the QUANTITY on a successful entry roll, not its chance.
+  # Default scaling: Fortune 0 = 1.00x, I = 1.25x, II = 1.50x, III = 1.75x.
+  # Fractional quantities are rounded randomly for fair averages. Setting 0.0
+  # disables bonus-quantity scaling. Allowed values: 0.0 through 1.0.
+  # Existing configs with eligible-tools.diamond-fortune-3 are still recognized
+  # as a fallback if eligible-tools.diamond is absent (no Fortune III requirement).
+  bonus-loot:
+    enabled: true
+    fortune-quantity-bonus-per-level: 0.25
+    eligible-tools:
+      diamond: true
+      netherite: true
+    trees:
+      OAK:
+        HONEYCOMB:              {chance: 15.0, min: 1, max: 5}
+        HONEY_BOTTLE:           {chance: 15.0, min: 1, max: 5}
+        WHEAT_SEEDS:            {chance: 10.0, min: 1, max: 10}
+        PUMPKIN_SEEDS:          {chance: 5.0, min: 1, max: 5}
+        GLOW_BERRIES:           {chance: 5.0, min: 1, max: 2}
+        EGG:                    {chance: 5.0, min: 1, max: 5}
+        BLUE_EGG:               {chance: 5.0, min: 1, max: 5}
+        BROWN_EGG:              {chance: 5.0, min: 1, max: 5}
+        GOLDEN_APPLE:           {chance: 2.5, min: 1, max: 2}
+        GOLDEN_DANDELION:       {chance: 1.0, min: 1, max: 1}
+        ENCHANTED_GOLDEN_APPLE: {chance: 0.5, min: 1, max: 1}
+      BIRCH:
+        WHEAT_SEEDS:            {chance: 15.0, min: 1, max: 5}
+        PUMPKIN_SEEDS:          {chance: 10.0, min: 1, max: 5}
+        HONEYCOMB:              {chance: 8.0, min: 1, max: 3}
+        HONEY_BOTTLE:           {chance: 8.0, min: 1, max: 3}
+        PUMPKIN_PIE:            {chance: 5.0, min: 1, max: 3}
+        GLOW_BERRIES:           {chance: 5.0, min: 1, max: 2}
+        EGG:                    {chance: 5.0, min: 1, max: 5}
+        BLUE_EGG:               {chance: 5.0, min: 1, max: 5}
+        BROWN_EGG:              {chance: 5.0, min: 1, max: 5}
+        GOLDEN_APPLE:           {chance: 2.5, min: 1, max: 2}
+        GOLDEN_DANDELION:       {chance: 1.0, min: 1, max: 1}
+        ENCHANTED_GOLDEN_APPLE: {chance: 0.5, min: 1, max: 1}
+      SPRUCE:
+        PUMPKIN_SEEDS:          {chance: 15.0, min: 1, max: 5}
+        PUMPKIN_PIE:            {chance: 10.0, min: 1, max: 3}
+        SWEET_BERRIES:          {chance: 10.0, min: 1, max: 3}
+        RABBIT_STEW:            {chance: 10.0, min: 2, max: 6}
+        BEETROOT_SEEDS:         {chance: 5.0, min: 1, max: 5}
+        EGG:                    {chance: 5.0, min: 1, max: 5}
+        BLUE_EGG:               {chance: 5.0, min: 1, max: 5}
+        BROWN_EGG:              {chance: 5.0, min: 1, max: 5}
+        BEETROOT_SOUP:          {chance: 3.0, min: 1, max: 3}
+        IRON_NUGGET:            {chance: 3.0, min: 1, max: 6}
+      JUNGLE:
+        VINE:                   {chance: 50.0, min: 1, max: 25}
+        MELON_SEEDS:            {chance: 15.0, min: 1, max: 5}
+        COCOA_BEANS:            {chance: 12.0, min: 1, max: 3}
+        MELON_SLICE:            {chance: 8.0, min: 1, max: 3}
+        PUMPKIN_SEEDS:          {chance: 5.0, min: 1, max: 5}
+        GLOW_BERRIES:           {chance: 5.0, min: 1, max: 2}
+        MOSSY_COBBLESTONE:      {chance: 3.0, min: 1, max: 3}
+      ACACIA:
+        WHEAT_SEEDS:            {chance: 15.0, min: 1, max: 5}
+        PUMPKIN_SEEDS:          {chance: 15.0, min: 1, max: 5}
+        BROWN_EGG:              {chance: 7.5, min: 1, max: 5}
+        RABBIT_STEW:            {chance: 5.0, min: 1, max: 3}
+        BEETROOT_SEEDS:         {chance: 5.0, min: 1, max: 5}
+        GLOW_BERRIES:           {chance: 5.0, min: 1, max: 2}
+        EGG:                    {chance: 2.5, min: 1, max: 5}
+        BLUE_EGG:               {chance: 2.5, min: 1, max: 5}
+        BEETROOT_SOUP:          {chance: 3.0, min: 1, max: 3}
+        HONEYCOMB:              {chance: 3.0, min: 1, max: 2}
+        HONEY_BOTTLE:           {chance: 3.0, min: 1, max: 2}
+        GOLD_NUGGET:            {chance: 3.0, min: 1, max: 6}
+      DARK_OAK:
+        RED_MUSHROOM:           {chance: 12.0, min: 1, max: 3}
+        BROWN_MUSHROOM:         {chance: 12.0, min: 1, max: 3}
+        BEETROOT_SEEDS:         {chance: 5.0, min: 1, max: 5}
+        GLOW_BERRIES:           {chance: 5.0, min: 1, max: 2}
+        BEETROOT_SOUP:          {chance: 3.0, min: 1, max: 3}
+        EGG:                    {chance: 2.5, min: 1, max: 5}
+        BLUE_EGG:               {chance: 2.5, min: 1, max: 5}
+        BROWN_EGG:              {chance: 2.5, min: 1, max: 5}
+        GOLDEN_APPLE:           {chance: 2.5, min: 1, max: 2}
+        GOLDEN_DANDELION:       {chance: 1.0, min: 1, max: 1}
+        ENCHANTED_GOLDEN_APPLE: {chance: 0.5, min: 1, max: 1}
+      PALE_OAK:
+        PALE_HANGING_MOSS:      {chance: 50.0, min: 1, max: 10}
+        PALE_MOSS_BLOCK:        {chance: 15.0, min: 1, max: 5}
+        PALE_MOSS_CARPET:       {chance: 15.0, min: 1, max: 5}
+        RESIN_CLUMP:            {chance: 10.0, min: 1, max: 3}
+        WHEAT_SEEDS:            {chance: 5.0, min: 1, max: 5}
+        BEETROOT_SEEDS:         {chance: 5.0, min: 1, max: 5}
+        BEETROOT_SOUP:          {chance: 3.0, min: 1, max: 3}
+        EGG:                    {chance: 2.5, min: 1, max: 5}
+        BLUE_EGG:               {chance: 2.5, min: 1, max: 5}
+        BROWN_EGG:              {chance: 2.5, min: 1, max: 5}
+        GOLDEN_APPLE:           {chance: 2.5, min: 1, max: 2}
+        GOLDEN_DANDELION:       {chance: 1.0, min: 1, max: 1}
+        ENCHANTED_GOLDEN_APPLE: {chance: 0.5, min: 1, max: 1}
+      CHERRY:
+        HONEYCOMB:              {chance: 15.0, min: 1, max: 2}
+        WHEAT_SEEDS:            {chance: 10.0, min: 1, max: 5}
+        PINK_PETALS:            {chance: 12.0, min: 1, max: 2}
+        TORCHFLOWER_SEEDS:      {chance: 2.5, min: 1, max: 2}
+      POPLAR:
+        PUMPKIN_SEEDS:          {chance: 15.0, min: 1, max: 5}
+        SHELF_MUSHROOM:         {chance: 12.0, min: 1, max: 2}
+        LEAF_LITTER:            {chance: 12.0, min: 1, max: 2}
+        BLUE_EGG:               {chance: 7.5, min: 1, max: 5}
+        WHEAT_SEEDS:            {chance: 5.0, min: 1, max: 5}
+        GLOW_BERRIES:           {chance: 5.0, min: 1, max: 2}
+        EGG:                    {chance: 2.5, min: 1, max: 5}
+        BROWN_EGG:              {chance: 2.5, min: 1, max: 5}
+        GOLDEN_APPLE:           {chance: 2.5, min: 1, max: 2}
+        GOLDEN_DANDELION:       {chance: 1.0, min: 1, max: 1}
+        ENCHANTED_GOLDEN_APPLE: {chance: 0.5, min: 1, max: 1}
+      AZALEA:
+        EMERALD:                {chance: 20.0, min: 3, max: 10}
+        GLOW_BERRIES:           {chance: 20.0, min: 3, max: 10}
+        MOSS_BLOCK:             {chance: 10.0, min: 1, max: 2}
+        MOSS_CARPET:            {chance: 10.0, min: 1, max: 2}
+        WHEAT_SEEDS:            {chance: 5.0, min: 1, max: 5}
+        BEETROOT_SEEDS:         {chance: 5.0, min: 1, max: 5}
+        PUMPKIN_SEEDS:          {chance: 5.0, min: 1, max: 5}
+        GOLDEN_APPLE:           {chance: 5.0, min: 1, max: 2}
+        GOLDEN_DANDELION:       {chance: 2.5, min: 1, max: 1}
+        ENCHANTED_GOLDEN_APPLE: {chance: 1.0, min: 1, max: 1}
+      MANGROVE:
+        VINE:                   {chance: 50.0, min: 1, max: 25}
+        MOSS_CARPET:            {chance: 10.0, min: 1, max: 2}
+        SUSPICIOUS_STEW:        {chance: 5.0, min: 1, max: 3}
+        MUD:                    {chance: 5.0, min: 1, max: 1}
+      RED_MUSHROOM:
+        RED_MUSHROOM:           {chance: 25.0, min: 1, max: 10}
+        BROWN_MUSHROOM:         {chance: 5.0, min: 1, max: 5}
+        MUSHROOM_STEW:          {chance: 5.0, min: 1, max: 3}
+      BROWN_MUSHROOM:
+        BROWN_MUSHROOM:         {chance: 25.0, min: 1, max: 10}
+        RED_MUSHROOM:           {chance: 5.0, min: 1, max: 5}
+        MUSHROOM_STEW:          {chance: 5.0, min: 1, max: 3}
+      CRIMSON:
+        NETHER_WART:            {chance: 12.0, min: 1, max: 3}
+        GLOWSTONE_DUST:         {chance: 8.0, min: 1, max: 2}
+        WITHER_ROSE:            {chance: 2.5, min: 1, max: 1}
+        ANCIENT_DEBRIS:         {chance: 1.0, min: 1, max: 2}
+        NETHER_STAR:            {chance: 0.1, min: 1, max: 1}
+      WARPED:
+        QUARTZ:                 {chance: 12.0, min: 1, max: 3}
+        ENDER_PEARL:            {chance: 5.0, min: 1, max: 1}
+        WITHER_ROSE:            {chance: 2.5, min: 1, max: 1}
+        ANCIENT_DEBRIS:         {chance: 1.0, min: 1, max: 2}
+        NETHER_STAR:            {chance: 0.1, min: 1, max: 1}

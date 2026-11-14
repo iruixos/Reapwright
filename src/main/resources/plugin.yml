@@ -1,18 +1,21 @@
 name: Reapwright
-version: '1.4.6'
+version: '2.0.0-RC1'
 main: com.iruixos.reapwright.ReapwrightPlugin
 api-version: '26.3'
 author: iruixos
 folia-supported: false
-description: Right-click mature crops with a diamond or netherite hoe to harvest and replant.
+softdepend: [WorldGuard, CoreProtect]
+description: Near-vanilla crop harvesting and configurable tree felling with replanting.
 commands:
   reapwright:
     description: Reapwright administration
-    usage: /reapwright reload
-    permission: reapwright.admin
+    usage: /reapwright reload | tree debug
 permissions:
   reapwright.use:
     description: Allows harvesting with supported hoes
+    default: true
+  reapwright.treefeller:
+    description: Allows opt-in Tree Feller harvesting
     default: true
   reapwright.admin:
     description: Allows reloading Reapwright configuration

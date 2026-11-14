@@ -32,6 +32,7 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
     private final java.util.Map<org.bukkit.Location, Integer> customBrews = new java.util.HashMap<>();
     private final java.util.Set<org.bukkit.Location> watchedStands = new java.util.HashSet<>();
     private boolean warnedProgressApi = false;
+    private com.iruixos.reapwright.treefeller.TreeFeller treeFeller;
     private Set<Material> allowedTools;
     private Set<Material> enabledCrops;
     private int harvestWidth;
@@ -42,6 +43,8 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
         saveDefaultConfig();
         loadSettings();
         getServer().getPluginManager().registerEvents(this, this);
+        treeFeller = new com.iruixos.reapwright.treefeller.TreeFeller(this);
+        getServer().getPluginManager().registerEvents(treeFeller, this);
         getServer().getScheduler().runTaskTimer(this, this::tickBrewing, 1L, 1L);
         printStartupBanner();
     }
@@ -384,9 +387,61 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    private final com.iruixos.reapwright.treefeller.TreeInspector treeInspector =
+            new com.iruixos.reapwright.treefeller.TreeInspector();
+
+    @Override public java.util.List<String> onTabComplete(CommandSender sender, Command command,
+                                                            String alias, String[] args) {
+        if (!sender.hasPermission("reapwright.admin")) return java.util.List.of();
+        if (args.length == 1) return java.util.List.of("reload", "tree").stream()
+                .filter(s -> s.startsWith(args[0].toLowerCase(java.util.Locale.ROOT))).toList();
+        if (args.length == 2 && args[0].equalsIgnoreCase("tree")) return java.util.List.of("debug").stream()
+                .filter(s -> s.startsWith(args[1].toLowerCase(java.util.Locale.ROOT))).toList();
+        return java.util.List.of();
+    }
+
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 3 && args[0].equalsIgnoreCase("tree")
+                && args[1].equalsIgnoreCase("bypass")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("This command requires an in-game player.");
+            } else if (treeFeller != null) {
+                treeFeller.acknowledgeAxeBreak(player, args[2]);
+            }
+            return true;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("tree")
+                && args[1].equalsIgnoreCase("debug")) {
+            if (!sender.hasPermission("reapwright.admin")) {
+                sender.sendMessage("You do not have permission."); return true;
+            }
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("This command requires an in-game player."); return true;
+            }
+            if (!getConfig().getBoolean("tree-feller.enabled", false)) {
+                sender.sendMessage("Tree Feller inspection is disabled in config.yml."); return true;
+            }
+            Block target = player.getTargetBlockExact(12);
+            if (target == null) {
+                player.sendMessage(ReapwrightChat.PREFIX + "§r Look directly at a tree trunk within 12 blocks."); return true;
+            }
+            var result = treeInspector.inspect(target, getConfig());
+            player.sendMessage(ReapwrightChat.PREFIX + "§b Tree Detection (safety inspection)");
+            player.sendMessage("§7  Species: " + result.species());
+            player.sendMessage("§7  Logs scanned: " + result.logs());
+            player.sendMessage("§7  Nearby foliage: " + result.foliage());
+            player.sendMessage("§7  2x2 trunk: " + (result.twoByTwo() ? "YES" : "NO"));
+            player.sendMessage("§7  Validated diagonal connections: " + result.diagonalBranches());
+            player.sendMessage("§7  Bee nests / stored bees: " + result.beeNests() + " / " + result.storedBees());
+            player.sendMessage("§7  Suspected attachments: " + result.attachments());
+            player.sendMessage("§7  Sensitive blocks: " + result.suspiciousBlocks());
+            player.sendMessage("§7  Missing chunk observations: " + result.nearbyChunksMissing());
+            player.sendMessage("§7  Result: " + (result.valid() ? "§a" : "§c") + result.reason());
+            player.sendMessage("§e  Experimental felling: only eligible simple trees, when explicitly enabled; see development notes.");
+            return true;
+        }
         if (args.length != 1 || !args[0].equalsIgnoreCase("reload")) {
-            sender.sendMessage("Usage: /" + label + " reload");
+            sender.sendMessage("Usage: /" + label + " reload | tree debug");
             return true;
         }
         if (!sender.hasPermission("reapwright.admin")) {
