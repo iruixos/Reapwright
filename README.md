@@ -1,4 +1,4 @@
-![Reapwright Banner](assets/header2.png)
+![Reapwright Banner](assets/header3.png)
 
 # Reapwright
 
