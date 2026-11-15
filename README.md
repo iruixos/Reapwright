@@ -5,7 +5,7 @@
 **Reapwright** is a lightweight, near-vanilla farming, forestry, and mining quality-of-life plugin for **Paper servers**. Harvest mature crops with a configured hoe and automatically replant them, or optionally fell natural trees, huge mushrooms, and Nether fungi with an axe. Crop harvesting supports configurable areas from **1×1 to 9×9**; Tree Feller and Mining are both **disabled by default**.
 
 > [!IMPORTANT]
-> Back up your world and inventories before testing Tree Feller & Mining. Live WorldGuard and CoreProtect integration testing is pending, and an interrupted harvest can leave partial changes. Veinminer compatability should be good to go.
+> WorldGuard and CoreProtect integration testing is pending, and an interrupted harvest can leave partial changes. Veinminer compatability should be good to go.
 
 ## Features
 
