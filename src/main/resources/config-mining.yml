@@ -73,85 +73,98 @@ enabled-blocks:
 drops:
   overworld:
     STONE:
-      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
-      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
-      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
-      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
-      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
-      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
-      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
-      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
-      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
-      REDSTONE:               {chance: 0.1, min: 1, max: 5}
-      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      COAL:                   {chance: 3.0, min: 1, max: 1}
+      COPPER_NUGGET:          {chance: 1.5, min: 1, max: 2}
+      COPPER_INGOT:           {chance: 1.25, min: 1, max: 1}
+      RAW_COPPER_BLOCK:       {chance: 1.0, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 1.0, min: 1, max: 2}
+      IRON_INGOT:             {chance: 0.75, min: 1, max: 1}
+      RAW_IRON_BLOCK:         {chance: 0.5, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 0.5, min: 1, max: 2}
+      GOLD_INGOT:             {chance: 0.25, min: 1, max: 1}
+      RAW_GOLD_BLOCK:         {chance: 0.1, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 3}
+      EMERALD:                {chance: 0.05, min: 1, max: 5}
       DIAMOND:                {chance: 0.01, min: 1, max: 1}
     DEEPSLATE:
-      LAPIS_LAZULI:           {chance: 2.5, min: 1, max: 5}
-      REDSTONE:               {chance: 2.5, min: 1, max: 5}
-      AMETHYST_SHARD:         {chance: 1.25, min: 2, max: 5}
-      DIAMOND:                {chance: 0.5, min: 1, max: 3}
+      LAPIS_LAZULI:           {chance: 1.5, min: 1, max: 2}
+      REDSTONE:               {chance: 1.5, min: 1, max: 2}
+      AMETHYST_SHARD:         {chance: 1.0, min: 1, max: 2}
+      GLOWSTONE_DUST:         {chance: 0.75, min: 1, max: 1}
+      EMERALD:                {chance: 0.5, min: 1, max: 2}
+      DIAMOND:                {chance: 0.3, min: 1, max: 1}
     GRANITE:
-      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
-      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
-      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
-      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
-      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
-      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
-      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
-      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
-      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
-      REDSTONE:               {chance: 0.1, min: 1, max: 5}
-      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      COAL:                   {chance: 3.0, min: 1, max: 1}
+      COPPER_NUGGET:          {chance: 1.5, min: 1, max: 2}
+      COPPER_INGOT:           {chance: 1.25, min: 1, max: 1}
+      RAW_COPPER_BLOCK:       {chance: 1.0, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 1.0, min: 1, max: 2}
+      IRON_INGOT:             {chance: 0.75, min: 1, max: 1}
+      RAW_IRON_BLOCK:         {chance: 0.5, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 0.5, min: 1, max: 2}
+      GOLD_INGOT:             {chance: 0.25, min: 1, max: 1}
+      RAW_GOLD_BLOCK:         {chance: 0.1, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 3}
+      EMERALD:                {chance: 0.05, min: 1, max: 5}
       DIAMOND:                {chance: 0.01, min: 1, max: 1}
     DIORITE:
-      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
-      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
-      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
-      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
-      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
-      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
-      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
-      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
-      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
-      REDSTONE:               {chance: 0.1, min: 1, max: 5}
-      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      COAL:                   {chance: 3.0, min: 1, max: 1}
+      COPPER_NUGGET:          {chance: 1.5, min: 1, max: 2}
+      COPPER_INGOT:           {chance: 1.25, min: 1, max: 1}
+      RAW_COPPER_BLOCK:       {chance: 1.0, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 1.0, min: 1, max: 2}
+      IRON_INGOT:             {chance: 0.75, min: 1, max: 1}
+      RAW_IRON_BLOCK:         {chance: 0.5, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 0.5, min: 1, max: 2}
+      GOLD_INGOT:             {chance: 0.25, min: 1, max: 1}
+      RAW_GOLD_BLOCK:         {chance: 0.1, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 3}
+      EMERALD:                {chance: 0.05, min: 1, max: 5}
       DIAMOND:                {chance: 0.01, min: 1, max: 1}
     ANDESITE:
-      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
-      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
-      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
-      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
-      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
-      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
-      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
-      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
-      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
-      REDSTONE:               {chance: 0.1, min: 1, max: 5}
-      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      COAL:                   {chance: 3.0, min: 1, max: 1}
+      COPPER_NUGGET:          {chance: 1.5, min: 1, max: 2}
+      COPPER_INGOT:           {chance: 1.25, min: 1, max: 1}
+      RAW_COPPER_BLOCK:       {chance: 1.0, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 1.0, min: 1, max: 2}
+      IRON_INGOT:             {chance: 0.75, min: 1, max: 1}
+      RAW_IRON_BLOCK:         {chance: 0.5, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 0.5, min: 1, max: 2}
+      GOLD_INGOT:             {chance: 0.25, min: 1, max: 1}
+      RAW_GOLD_BLOCK:         {chance: 0.1, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 3}
+      EMERALD:                {chance: 0.05, min: 1, max: 5}
       DIAMOND:                {chance: 0.01, min: 1, max: 1}
     TUFF:
-      MUD:                    {chance: 2.5, min: 1, max: 5}
+      MUD:                    {chance: 5.0, min: 1, max: 3}
+      CLAY_BALL:              {chance: 5.0, min: 1, max: 3}
     CALCITE:
       BONE_MEAL:              {chance: 0.5, min: 1, max: 1}
       AMETHYST_SHARD:         {chance: 0.75, min: 1, max: 1}
     DRIPSTONE_BLOCK:
-      CLAY_BALL:              {chance: 0.5, min: 1, max: 1}
+      CLAY_BALL:              {chance: 5.0, min: 1, max: 1}
     SMOOTH_BASALT:
       CALCITE:                {chance: 0.5, min: 1, max: 1}
     SULFUR:
-      SULFUR_SPIKE:          {chance: 1.0, min: 1, max: 1}
+      SULFUR_SPIKE:           {chance: 10.0, min: 1, max: 2}
+      MAGMA_CREAM:            {chance: 1.0, min: 1, max: 1}
+      SLIME_BALL:             {chance: 1.0, min: 1, max: 1}
     CINNABAR:
-      RED_DYE:               {chance: 1.0, min: 1, max: 1}
+      RED_DYE:                {chance: 10.0, min: 1, max: 2}
+      BLAZE_POWDER:           {chance: 1.0, min: 1, max: 1}
+      SLIME_BALL:             {chance: 1.0, min: 1, max: 1}
     SANDSTONE:
-      SAND:                  {chance: 5.0, min: 1, max: 3}
+      SAND:                   {chance: 5.0, min: 1, max: 3}
     RED_SANDSTONE:
-      RED_SAND:              {chance: 5.0, min: 1, max: 3}
+      RED_SAND:               {chance: 5.0, min: 1, max: 3}
 
   nether:
     NETHERRACK: {} # Add a reward here to enable bonus drops.
     BLACKSTONE:
       GOLD_NUGGET:            {chance: 2.5, min: 1, max: 1}
+      BLAZE_ROD:              {chance: 0.25, min: 1, max: 1}
     BASALT:
+      GOLD_NUGGET:            {chance: 2.5, min: 1, max: 1}
       MAGMA_CREAM:            {chance: 0.25, min: 1, max: 1}
 
   end:
@@ -166,33 +179,33 @@ ore-drops:
     DEEPSLATE_COAL_ORE:
       COAL:                   {chance: 5.0, min: 1, max: 2}
     IRON_ORE:
-      RAW_IRON:               {chance: 5.0, min: 1, max: 2}
+      RAW_IRON:               {chance: 5.0, min: 1, max: 1}
     DEEPSLATE_IRON_ORE:
-      RAW_IRON:               {chance: 5.0, min: 1, max: 2}
+      RAW_IRON:               {chance: 5.0, min: 1, max: 1}
     COPPER_ORE:
-      RAW_COPPER:             {chance: 5.0, min: 1, max: 2}
+      RAW_COPPER:             {chance: 5.0, min: 1, max: 1}
     DEEPSLATE_COPPER_ORE:
-      RAW_COPPER:             {chance: 5.0, min: 1, max: 2}
+      RAW_COPPER:             {chance: 5.0, min: 1, max: 1}
     GOLD_ORE:
-      RAW_GOLD:               {chance: 5.0, min: 1, max: 2}
+      RAW_GOLD:               {chance: 5.0, min: 1, max: 1}
     DEEPSLATE_GOLD_ORE:
-      RAW_GOLD:               {chance: 5.0, min: 1, max: 2}
+      RAW_GOLD:               {chance: 5.0, min: 1, max: 1}
     REDSTONE_ORE:
-      REDSTONE:               {chance: 5.0, min: 1, max: 2}
+      REDSTONE:               {chance: 5.0, min: 1, max: 1}
     DEEPSLATE_REDSTONE_ORE:
-      REDSTONE:               {chance: 5.0, min: 1, max: 2}
+      REDSTONE:               {chance: 5.0, min: 1, max: 1}
     LAPIS_ORE:
-      LAPIS_LAZULI:           {chance: 5.0, min: 1, max: 2}
+      LAPIS_LAZULI:           {chance: 5.0, min: 1, max: 1}
     DEEPSLATE_LAPIS_ORE:
-      LAPIS_LAZULI:           {chance: 5.0, min: 1, max: 2}
+      LAPIS_LAZULI:           {chance: 5.0, min: 1, max: 1}
     DIAMOND_ORE:
-      DIAMOND:                {chance: 5.0, min: 1, max: 2}
+      DIAMOND:                {chance: 5.0, min: 1, max: 1}
     DEEPSLATE_DIAMOND_ORE:
-      DIAMOND:                {chance: 5.0, min: 1, max: 2}
+      DIAMOND:                {chance: 5.0, min: 1, max: 1}
     EMERALD_ORE:
-      EMERALD:                {chance: 5.0, min: 1, max: 2}
+      EMERALD:                {chance: 5.0, min: 1, max: 1}
     DEEPSLATE_EMERALD_ORE:
-      EMERALD:                {chance: 5.0, min: 1, max: 2}
+      EMERALD:                {chance: 5.0, min: 1, max: 1}
   nether:
     NETHER_GOLD_ORE:
       GOLD_NUGGET:            {chance: 5.0, min: 9, max: 18}
