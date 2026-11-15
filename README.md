@@ -2,10 +2,10 @@
 
 # Reapwright
 
-**Reapwright** is a lightweight, near-vanilla farming and forestry quality-of-life plugin for **Paper servers**. Harvest mature crops with a configured hoe and automatically replant them, or optionally fell natural trees, huge mushrooms, and Nether fungi with an axe. Crop harvesting supports configurable areas from **1×1 to 9×9**; Tree Feller is **disabled by default**.
+**Reapwright** is a lightweight, near-vanilla farming, forestry, and mining quality-of-life plugin for **Paper servers**. Harvest mature crops with a configured hoe and automatically replant them, or optionally fell natural trees, huge mushrooms, and Nether fungi with an axe. Crop harvesting supports configurable areas from **1×1 to 9×9**; Tree Feller and Mining are both **disabled by default**.
 
 > [!IMPORTANT]
-> **2.0.0-RC1 — Release Candidate:** Intended for controlled testing. Back up your world and inventories before testing Tree Feller. WorldGuard/CoreProtect integrations and recovery from unexpected mid-harvest failures have not been fully verified.
+> **2.1.0-RC1 (Release Candidate).** Intended for controlled testing. Back up your world and inventories before testing Tree Feller. WorldGuard/CoreProtect integrations and recovery from unexpected mid-harvest failures have not been fully verified.
 
 ## Features
 
@@ -27,6 +27,7 @@
 
 - **All vanilla axe tiers:** Wooden, Stone, Copper, Iron, Golden, Diamond, and Netherite axes can fell trees when eligible and sufficiently durable.
 - **Natural tree support:** Oak (including large/Fancy Oak), Birch, Spruce (including giant forms), Jungle (including giant forms), Acacia, Dark Oak, Pale Oak, Cherry, Poplar, Azalea/Flowering Azalea, and Mangrove (including tall forms).
+- **Offset trunks:** Detection follows staggered Acacia and Azalea trunks, including consecutive diagonal steps in Acacia.
 - **Other large fungi:** Huge Red and Brown Mushrooms, Crimson fungi, and Warped fungi.
 - **Tree-aware harvesting:** Attempts to keep nearby trees and player-built structures separate; handles appropriate foliage, vines, moss, roots, snow, Cocoa Pods, Shelf Mushrooms, hanging Propagules, Nether growth, and Shroomlights.
 - **Optional Domino:** Can additionally fell nearby separate eligible trees; off by default.
@@ -38,6 +39,12 @@
 - **Creaking Hearts:** Silk Touch preserves the Heart item; otherwise the Heart drops Fortune-scaled Resin Clumps, with natural-generation XP handling.
 - **State-sensitive drops:** Cocoa Pods, Shelf Mushrooms, and Mangrove Propagules are harvested according to their growth and attachment states.
 - **Chat quality of life:** White brackets and light-green `Reapwright` prefix; concise axe-break notifications; a **10-second** default per-player cooldown for repeated identical notices. Detailed diagnostics are off by default.
+
+### Mining (opt-in)
+
+- **Per-block bonus loot:** Eligible breaks using Diamond or Netherite Pickaxes without Silk Touch roll each configured reward independently. Fortune increases the quantity of successful rewards.
+- **Separate stone and ore tables:** Configure rewards by dimension or replace the dimension tables for a named world.
+- **Veinminer support:** Optional integration with Veinminer 2.14.0 for additional blocks, including servers using the Veinminer Enchantment companion.
 
 ## Poisonous potatoes
 
@@ -67,16 +74,16 @@ All crops must be fully mature. Adding arbitrary material names to `enabled-crop
 - **Java:** JDK/Java 25
 - **Build:** Maven (3.9+ recommended)
 - **Folia:** Not supported (`folia-supported: false`)
-- **Optional integrations:** WorldGuard and CoreProtect (experimental Tree Feller integrations)
+- **Optional integrations:** Veinminer 2.14.0 for Mining. WorldGuard and CoreProtect have experimental Tree Feller integrations.
 
 ## Installation
 
-1. Obtain the `2.0.0-RC1` JAR or build it from source.
-2. Stop Paper and place the JAR in `plugins/`; remove any older Reapwright JAR.
-3. Start the server to generate `plugins/Reapwright/config.yml`.
-4. **Keep a copy of any existing customized config** when upgrading. Compare it with the new default rather than overwriting your loot tables.
-5. Use `/reapwright reload` after editing the configuration, or restart the server.
-6. To test Tree Feller, set `tree-feller.enabled: true`. Review the WorldGuard/CoreProtect safety section before enabling it on servers where either plugin is installed.
+1. Download or build `reapwright-2.1.0-RC1.jar`.
+2. Stop Paper, remove the older Reapwright JAR, and place the new JAR in `plugins/`.
+3. Start Paper. Reapwright creates missing config files in `plugins/Reapwright/` and migrates supported legacy configs. See [Configuration](#configuration) for upgrade details.
+4. Enable Tree Feller in `config-treefeller.yml` or Mining in `config-mining.yml` as desired. Review the Tree Feller integration settings if your server uses WorldGuard or CoreProtect.
+5. Run `/reapwright reload` after editing the YAML files.
+
 
 ## Usage
 
@@ -90,13 +97,23 @@ When `tree-feller.enabled: true`, use a supported axe to break a natural tree tr
 
 If the axe would break during the planned harvest, the player can choose the clickable **Break Axe Anyway** acknowledgement (expires after 15 seconds). The axe may be consumed and the remaining tree left standing; no full-tree bonus loot or automatic replanting is awarded for an incomplete harvest.
 
-### Example Fortune bonus-loot scaling
+### Example Tree Feller Fortune bonus-loot scaling
 
 For a successfully rolled bonus entry with a base quantity of 4 items, Fortune III's default +75% quantity bonus yields 7 items. The **configured chance** of that entry remains unchanged. Fortune 0/I/II/III quantity multipliers are 1.00× / 1.25× / 1.50× / 1.75×. Fractional bonus quantities use randomized rounding.
 
 ## Configuration
 
-File: `plugins/Reapwright/config.yml`. The entries below are a **configuration reference**, not a replacement for the full default file. In particular, preserve your existing `tree-feller.bonus-loot.trees` entries and species-specific quantities. The RC source's [`src/main/resources/config.yml`](src/main/resources/config.yml) contains the complete default tables.
+Reapwright keeps these files under `plugins/Reapwright/`. The linked source files contain the complete defaults.
+
+| File | Settings |
+| --- | --- |
+| [`config.yml`](src/main/resources/config.yml) | Crop harvesting and poisonous-potato composting and brewing. |
+| [`config-treefeller.yml`](src/main/resources/config-treefeller.yml) | Tree Feller, replanting, sapling rates, bonus loot, and integration settings. |
+| [`config-mining.yml`](src/main/resources/config-mining.yml) | Mining eligibility, Fortune, and stone and ore reward tables. |
+
+**Upgrading from an older build.** Reapwright backs up the original main config as `config.yml.before-treefeller-migration.bak` before moving a legacy `tree-feller:` section to `config-treefeller.yml`. Values already in the dedicated file take precedence. Missing Tree Feller settings are filled from the legacy section and then the bundled defaults. Custom sapling rates and bonus tables, including explicitly empty tables, are treated as complete. When the corresponding dedicated file is missing, Reapwright can also copy `reapwright-module-treefeller.yml`, `reapwright-module-mining.yml`, or `mining-drops.yml`. Existing module settings remain in effect after upgrading, including an administrator's saved `enabled` value.
+
+**Version comments.** The top of each config records the Reapwright version that created it and the version that last wrote it. An unversioned older file shows `unknown (legacy file)` as its creation version. Edits by an administrator leave those comments as they are.
 
 ### Crop harvesting and poisonous potatoes
 
@@ -181,7 +198,7 @@ tree-feller:
     eligible-tools:
       diamond: true
       netherite: true
-    # trees: [retain complete species/item chance/min/max tables from config.yml]
+    # Preserve your existing species and item tables under bonus-loot.trees.
 ```
 
 | Setting | Default | Description |
@@ -221,11 +238,26 @@ tree-feller:
         HONEYCOMB: {chance: 15.0, min: 1, max: 5}
 ```
 
+### Mining
+
+In `config-mining.yml`, set `enabled: true` and run `/reapwright reload`. The `bonus-loot.enabled` switch controls rewards separately. A material must be in `enabled-blocks` and have a reward in its active table.
+
+| Setting | Purpose |
+| --- | --- |
+| `drops.overworld`, `drops.nether`, `drops.end` | Stone and related block rewards by dimension. Netherrack and End Stone start with empty tables. |
+| `ore-drops.overworld`, `ore-drops.nether` | Ore reward tables. The bundled tables cover standard and deepslate ores, Nether Gold Ore, and Nether Quartz Ore. |
+| `world-drops.<world>` | Replaces both dimension tables for the exact world name. Use an empty mapping to disable rewards for that world. |
+| `fortune-quantity-multipliers` | Mining defaults are Fortune I ×1.25, II ×1.667, and III ×2.0. |
+
+Each reward uses `chance` (percent), `min`, and `max`. Paper or Veinminer supplies the usual block drops and XP. Silk Touch skips Reapwright bonuses. Ancient Debris also skips bonuses, including rewards specified in older configs. Player-placed or generator-produced stone can qualify by material.
+
+**Veinminer.** The starting block uses Paper's normal drop event. Each eligible additional block rolls its bonus using the starting pickaxe's Fortune and Veinminer's drop location. The starting break must be identifiable within five minutes of server ticks. Configure the block in Veinminer as well as Reapwright. If Veinminer Enchantment is installed, its enchantment requirement still governs veinmining.
+
 ## Commands and permissions
 
 | Command | Permission | Description |
 | --- | --- | --- |
-| `/reapwright reload` | `reapwright.admin` | Reload configuration without a restart. |
+| `/reapwright reload` | `reapwright.admin` | Reload all three Reapwright config files without a restart. |
 | `/reapwright tree debug` | `reapwright.admin` | In-game tree inspection of the block being looked at (within 12 blocks); Tree Feller must be enabled. |
 | `/reapwright tree bypass <token>` | Single-use confirmation token | Internal command invoked by the **Break Axe Anyway** chat link; player, tool, tree and expiration are validated. It is not a general administrative bypass. |
 
@@ -233,6 +265,7 @@ tree-feller:
 | --- | --- | --- |
 | `reapwright.use` | `true` (all players) | Harvest supported crops with configured hoes. |
 | `reapwright.treefeller` | `true` (all players) | Use Tree Feller when globally enabled and safety checks pass. |
+| `reapwright.mining` | `true` (all players) | Receive Mining bonus loot when the module and rewards are enabled. |
 | `reapwright.admin` | `op` | Reload configuration and use the tree inspection command. |
 
 Manage permissions with LuckPerms or another Bukkit-compatible permissions plugin, if desired. For example:
@@ -259,7 +292,7 @@ The permission defaults above mean ordinary players already have `reapwright.use
 
 ## WorldGuard and CoreProtect compatibility
 
-Tree Feller's optional integrations are **experimental and not yet validated in live region-boundary, logging and rollback tests**. Both are disabled by default:
+Tree Feller's optional integrations are experimental. Live region-boundary, logging, and rollback tests are pending. Both options default to `false` in `config-treefeller.yml`.
 
 ```yaml
 tree-feller:
@@ -274,6 +307,8 @@ If testing with one of these plugins installed, back up the world, explicitly en
 
 **Important crop caveat:** Area crop harvesting does not independently verify every neighbouring crop against a region-management plugin; the initial interaction's cancellation is honoured, but claims/protection setups require additional testing.
 
+**Mining compatibility.** Mining compatibility with WorldGuard is untested. Use at your own risk. CoreProtect block rollbacks do not undo awarded Mining bonuses.
+
 ## Known limitations
 
 - **Partial failures:** Unexpected mid-harvest errors do not have atomic or best-effort rollback; partial world changes are possible.
@@ -283,7 +318,7 @@ If testing with one of these plugins installed, back up the world, explicitly en
 - **Terrain and replanting:** Replanting depends on valid terrain and planting positions; 2×2 trees cannot always be replanted on uneven ground.
 - **Custom durability mechanics:** Reapwright applies its own wear logic; third-party durability-modification plugins may behave differently.
 - **Folia:** Not supported.
-- **Release verification:** A clean Java 25 Maven build and server smoke test should be performed before public release; source-package validation alone is not a runtime test.
+- **Release verification:** The Java 25 Maven build and Paper 26.3 startup and reload smoke tests passed. Connected-client Veinminer and live WorldGuard/CoreProtect integration tests are outside that verification.
 
 ## Building from source
 
@@ -293,14 +328,14 @@ Run from the project root containing `pom.xml`:
 mvn clean package
 ```
 
-Expected output: `target/reapwright-2.0.0-RC1.jar`.
+Expected output: `target/reapwright-2.1.0-RC1.jar`.
 
-The project targets **Java 25** and Paper API `26.3.build.244-stable`. WorldGuard and CoreProtect are optional compile-time `provided` dependencies; they are not bundled with Reapwright. Refer to [`RELEASE-NOTES-2.0.0-RC1.md`](RELEASE-NOTES-2.0.0-RC1.md) for the RC summary and [`docs/development/`](docs/development/) for historical development notes.
+The project targets **Java 25** and Paper API `26.3.build.244-stable`. WorldGuard and CoreProtect are optional compile-time `provided` dependencies; they are not bundled with Reapwright. Refer to [`RELEASE-NOTES-2.0.0-RC1.md`](RELEASE-NOTES-2.0.0-RC1.md) for the earlier 2.0.0 release candidate summary and [`docs/development/`](docs/development/) for historical development notes.
 
 ## Project information
 
 - **Plugin:** Reapwright
-- **Version:** 2.0.0-RC1
+- **Version:** 2.1.0-RC1
 - **Author:** iruixos
 - **Platform:** Paper
 - **Package:** `com.iruixos.reapwright`

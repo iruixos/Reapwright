@@ -6,6 +6,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +21,10 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -33,6 +39,8 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
     private final java.util.Set<org.bukkit.Location> watchedStands = new java.util.HashSet<>();
     private boolean warnedProgressApi = false;
     private com.iruixos.reapwright.treefeller.TreeFeller treeFeller;
+    private YamlConfiguration treeFellerConfig;
+    private com.iruixos.reapwright.mining.MiningBonusLoot miningBonusLoot;
     private Set<Material> allowedTools;
     private Set<Material> enabledCrops;
     private int harvestWidth;
@@ -40,13 +48,17 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
     private boolean harvestSound;
 
     @Override public void onEnable() {
+        printStartupBanner();
         saveDefaultConfig();
         loadSettings();
         getServer().getPluginManager().registerEvents(this, this);
         treeFeller = new com.iruixos.reapwright.treefeller.TreeFeller(this);
         getServer().getPluginManager().registerEvents(treeFeller, this);
+        miningBonusLoot = new com.iruixos.reapwright.mining.MiningBonusLoot(this);
+        getServer().getPluginManager().registerEvents(miningBonusLoot, this);
+        com.iruixos.reapwright.mining.VeinminerMiningHook.register(this, miningBonusLoot);
+        treeFeller.logStatus();
         getServer().getScheduler().runTaskTimer(this, this::tickBrewing, 1L, 1L);
-        printStartupBanner();
     }
 
     private void printStartupBanner() {
@@ -81,12 +93,34 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
     }
 
     private void loadSettings() {
+        loadTreeFellerConfig();
         reloadConfig();
         allowedTools = materials("allowed-tools");
         enabledCrops = materials("enabled-crops");
         harvestWidth = Math.max(1, Math.min(9, getConfig().getInt("harvest-area-size", 1)));
         harvestParticles = getConfig().getBoolean("harvest-effects.particles", true);
         harvestSound = getConfig().getBoolean("harvest-effects.sound", true);
+    }
+
+    /** Dedicated Tree Feller configuration; preserves the existing tree-feller.* path. */
+    public YamlConfiguration getTreeFellerConfig() {
+        return treeFellerConfig;
+    }
+
+    private void loadTreeFellerConfig() {
+        String fileName = TreeFellerConfigFiles.FILE_NAME;
+        try (InputStream stream = getResource(fileName)) {
+            if (stream == null) throw new IOException("Bundled " + fileName + " is missing");
+            YamlConfiguration defaults = new YamlConfiguration();
+            defaults.options().parseComments(true);
+            defaults.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
+            treeFellerConfig = TreeFellerConfigFiles.load(getDataFolder().toPath(), defaults, getPluginMeta().getVersion(), getLogger());
+        } catch (IOException | InvalidConfigurationException error) {
+            treeFellerConfig = new YamlConfiguration();
+            treeFellerConfig.set("tree-feller.enabled", false);
+            getLogger().log(java.util.logging.Level.SEVERE, "Tree Feller disabled because its configuration "
+                    + "could not be loaded or migrated. Check config.yml and " + fileName + ".", error);
+        }
     }
 
     @Override public void onDisable() { customBrews.clear(); watchedStands.clear(); }
@@ -418,14 +452,14 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("This command requires an in-game player."); return true;
             }
-            if (!getConfig().getBoolean("tree-feller.enabled", false)) {
-                sender.sendMessage("Tree Feller inspection is disabled in config.yml."); return true;
+            if (!getTreeFellerConfig().getBoolean("tree-feller.enabled", false)) {
+                sender.sendMessage("Tree Feller inspection is disabled in " + TreeFellerConfigFiles.FILE_NAME + "."); return true;
             }
             Block target = player.getTargetBlockExact(12);
             if (target == null) {
                 player.sendMessage(ReapwrightChat.PREFIX + "§r Look directly at a tree trunk within 12 blocks."); return true;
             }
-            var result = treeInspector.inspect(target, getConfig());
+            var result = treeInspector.inspect(target, getTreeFellerConfig());
             player.sendMessage(ReapwrightChat.PREFIX + "§b Tree Detection (safety inspection)");
             player.sendMessage("§7  Species: " + result.species());
             player.sendMessage("§7  Logs scanned: " + result.logs());
@@ -449,6 +483,8 @@ public final class ReapwrightPlugin extends JavaPlugin implements Listener {
             return true;
         }
         loadSettings();
+        if (miningBonusLoot != null) miningBonusLoot.reload();
+        if (treeFeller != null) treeFeller.logStatus();
         sender.sendMessage("Reapwright configuration reloaded.");
         return true;
     }

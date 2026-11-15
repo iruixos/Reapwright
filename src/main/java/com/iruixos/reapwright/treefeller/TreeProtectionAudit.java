@@ -12,23 +12,23 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.iruixos.reapwright.ReapwrightPlugin;
 import java.util.Collection;
 
 /** Optional WorldGuard 7 / CoreProtect API v10+ integration. Fail closed if either API cannot be queried. */
 final class TreeProtectionAudit {
-    private final JavaPlugin plugin;
+    private final ReapwrightPlugin plugin;
     private boolean installed(String pluginName) {
         return plugin.getServer().getPluginManager().isPluginEnabled(pluginName);
     }
     private boolean optedIn(String key) {
-        return plugin.getConfig().getBoolean("tree-feller.integrations." + key, false);
+        return plugin.getTreeFellerConfig().getBoolean("tree-feller.integrations." + key, false);
     }
     String unreadyReason() {
         if (installed("WorldGuard") && !optedIn("worldguard"))
-            return "WorldGuard integration is disabled in config.yml; automatic felling is blocked.";
+            return "WorldGuard integration is disabled in config-treefeller.yml; automatic felling is blocked.";
         if (installed("CoreProtect") && !optedIn("coreprotect"))
-            return "CoreProtect integration is disabled in config.yml; automatic felling is blocked.";
+            return "CoreProtect integration is disabled in config-treefeller.yml; automatic felling is blocked.";
         if (installed("CoreProtect") && !readyCoreProtect())
             return "CoreProtect audit API unavailable; automatic felling is blocked.";
         return null;
@@ -40,7 +40,7 @@ final class TreeProtectionAudit {
             return false;
         }
     }
-    TreeProtectionAudit(JavaPlugin plugin) { this.plugin = plugin; }
+    TreeProtectionAudit(ReapwrightPlugin plugin) { this.plugin = plugin; }
 
     boolean canModify(Player player, Block block) {
         return regionAllowed(player, block, false);

@@ -1,0 +1,209 @@
+# Created by Reapwright: ${project.version}
+# Last modified by Reapwright: ${project.version}
+
+# Reapwright Mining — experimental development defaults.
+# Set enabled to true to enable mining bonus loot.
+# Bonus rolls do not replace or modify vanilla block drops.
+# Tools with Silk Touch never earn mining bonuses.
+# Mining compatibility with WorldGuard is untested. Use at your own risk.
+# WARNING: Block material alone cannot prove that a block was naturally generated.
+# Player-placed and regenerated blocks of the same material can also qualify.
+# Do not enable this on an economy server without additional provenance controls.
+enabled: false
+
+# Toggle bonus loot while keeping the Mining module enabled.
+bonus-loot:
+  enabled: true
+
+# Independent chance rolls once per successfully mined configured block.
+# Diamond and Netherite pickaxes are the only eligible tools.
+eligible-tools:
+  diamond: true
+  netherite: true
+
+# Multipliers apply to successful drop quantities. Fractions use randomized rounding.
+# Fortune does not change the chance of a successful roll.
+fortune-quantity-multipliers:
+  I: 1.25
+  II: 1.667
+  III: 2.0
+
+# Block types allowed in environment and named-world tables.
+# A block needs at least one reward in its active table to give bonus loot.
+enabled-blocks:
+  - STONE
+  - DEEPSLATE
+  - GRANITE
+  - DIORITE
+  - ANDESITE
+  - TUFF
+  - CALCITE
+  - DRIPSTONE_BLOCK
+  - SMOOTH_BASALT
+  - BASALT
+  - BLACKSTONE
+  - NETHERRACK
+  - SULFUR
+  - CINNABAR
+  - SANDSTONE
+  - RED_SANDSTONE
+  - END_STONE
+  - COAL_ORE
+  - DEEPSLATE_COAL_ORE
+  - IRON_ORE
+  - DEEPSLATE_IRON_ORE
+  - COPPER_ORE
+  - DEEPSLATE_COPPER_ORE
+  - GOLD_ORE
+  - DEEPSLATE_GOLD_ORE
+  - REDSTONE_ORE
+  - DEEPSLATE_REDSTONE_ORE
+  - LAPIS_ORE
+  - DEEPSLATE_LAPIS_ORE
+  - DIAMOND_ORE
+  - DEEPSLATE_DIAMOND_ORE
+  - EMERALD_ORE
+  - DEEPSLATE_EMERALD_ORE
+  - NETHER_GOLD_ORE
+  - NETHER_QUARTZ_ORE
+
+# Each item listed under a rock is rolled independently per qualifying break.
+# chance: percent (0.0–100.0). min/max: integers (1–2304).
+# Worlds without one of these environments need a named override to grant bonus loot.
+drops:
+  overworld:
+    STONE:
+      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
+      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
+      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
+      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
+      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
+      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
+      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 5}
+      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      DIAMOND:                {chance: 0.01, min: 1, max: 1}
+    DEEPSLATE:
+      LAPIS_LAZULI:           {chance: 2.5, min: 1, max: 5}
+      REDSTONE:               {chance: 2.5, min: 1, max: 5}
+      AMETHYST_SHARD:         {chance: 1.25, min: 2, max: 5}
+      DIAMOND:                {chance: 0.5, min: 1, max: 3}
+    GRANITE:
+      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
+      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
+      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
+      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
+      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
+      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
+      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 5}
+      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      DIAMOND:                {chance: 0.01, min: 1, max: 1}
+    DIORITE:
+      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
+      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
+      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
+      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
+      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
+      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
+      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 5}
+      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      DIAMOND:                {chance: 0.01, min: 1, max: 1}
+    ANDESITE:
+      COPPER_NUGGET:          {chance: 3.75, min: 1, max: 3}
+      COPPER_INGOT:           {chance: 2.0, min: 1, max: 2}
+      RAW_COPPER_BLOCK:       {chance: 0.75, min: 1, max: 1}
+      IRON_NUGGET:            {chance: 2.5, min: 1, max: 3}
+      IRON_INGOT:             {chance: 1.0, min: 1, max: 2}
+      RAW_IRON_BLOCK:         {chance: 0.50, min: 1, max: 1}
+      GOLD_NUGGET:            {chance: 1.25, min: 1, max: 3}
+      GOLD_INGOT:             {chance: 0.67, min: 1, max: 2}
+      RAW_GOLD_BLOCK:         {chance: 0.25, min: 1, max: 1}
+      REDSTONE:               {chance: 0.1, min: 1, max: 5}
+      EMERALD:                {chance: 0.05, min: 1, max: 10}
+      DIAMOND:                {chance: 0.01, min: 1, max: 1}
+    TUFF:
+      MUD:                    {chance: 2.5, min: 1, max: 5}
+    CALCITE:
+      BONE_MEAL:              {chance: 0.5, min: 1, max: 1}
+      AMETHYST_SHARD:         {chance: 0.75, min: 1, max: 1}
+    DRIPSTONE_BLOCK:
+      CLAY_BALL:              {chance: 0.5, min: 1, max: 1}
+    SMOOTH_BASALT:
+      CALCITE:                {chance: 0.5, min: 1, max: 1}
+    SULFUR:
+      SULFUR_SPIKE:          {chance: 1.0, min: 1, max: 1}
+    CINNABAR:
+      RED_DYE:               {chance: 1.0, min: 1, max: 1}
+    SANDSTONE:
+      SAND:                  {chance: 5.0, min: 1, max: 3}
+    RED_SANDSTONE:
+      RED_SAND:              {chance: 5.0, min: 1, max: 3}
+
+  nether:
+    NETHERRACK: {} # Add a reward here to enable bonus drops.
+    BLACKSTONE:
+      GOLD_NUGGET:            {chance: 2.5, min: 1, max: 1}
+    BASALT:
+      MAGMA_CREAM:            {chance: 0.25, min: 1, max: 1}
+
+  end:
+    END_STONE: {} # Add a reward here to enable bonus drops.
+
+# Ore bonuses use the same chance, quantity, pickaxe and Fortune settings as stone bonuses.
+# Empty entries award no bonus loot. Vanilla ore drops and XP are handled by Paper or Veinminer.
+ore-drops:
+  overworld:
+    COAL_ORE:
+      COAL:                   {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_COAL_ORE:
+      COAL:                   {chance: 5.0, min: 1, max: 2}
+    IRON_ORE:
+      RAW_IRON:               {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_IRON_ORE:
+      RAW_IRON:               {chance: 5.0, min: 1, max: 2}
+    COPPER_ORE:
+      RAW_COPPER:             {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_COPPER_ORE:
+      RAW_COPPER:             {chance: 5.0, min: 1, max: 2}
+    GOLD_ORE:
+      RAW_GOLD:               {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_GOLD_ORE:
+      RAW_GOLD:               {chance: 5.0, min: 1, max: 2}
+    REDSTONE_ORE:
+      REDSTONE:               {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_REDSTONE_ORE:
+      REDSTONE:               {chance: 5.0, min: 1, max: 2}
+    LAPIS_ORE:
+      LAPIS_LAZULI:           {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_LAPIS_ORE:
+      LAPIS_LAZULI:           {chance: 5.0, min: 1, max: 2}
+    DIAMOND_ORE:
+      DIAMOND:                {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_DIAMOND_ORE:
+      DIAMOND:                {chance: 5.0, min: 1, max: 2}
+    EMERALD_ORE:
+      EMERALD:                {chance: 5.0, min: 1, max: 2}
+    DEEPSLATE_EMERALD_ORE:
+      EMERALD:                {chance: 5.0, min: 1, max: 2}
+  nether:
+    NETHER_GOLD_ORE:
+      GOLD_NUGGET:            {chance: 5.0, min: 9, max: 18}
+    NETHER_QUARTZ_ORE:
+      QUARTZ:                 {chance: 5.0, min: 9, max: 18}
+    ANCIENT_DEBRIS: {} # Bonuses are suspended until player-placed blocks can be tracked.
+
+# Optional exact world names. Each entry replaces both environment tables and can list stone and ore blocks.
+# An empty world table disables mining bonus loot in that world.
+# world-drops:
+#   resource_nether:
+#     BLACKSTONE:
+#       GOLD_NUGGET: {chance: 5.0, min: 1, max: 1}
+world-drops: {}

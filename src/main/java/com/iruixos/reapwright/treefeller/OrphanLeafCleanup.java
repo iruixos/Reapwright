@@ -8,7 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Leaves;
 import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.iruixos.reapwright.ReapwrightPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayDeque;
@@ -38,19 +38,19 @@ final class OrphanLeafCleanup {
             BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST
     };
 
-    private final JavaPlugin plugin;
+    private final ReapwrightPlugin plugin;
     private final TreeProtectionAudit audit;
     private final List<Job> jobs = new ArrayList<>();
     private BukkitTask ticker;
     private long tick;
 
-    OrphanLeafCleanup(JavaPlugin plugin, TreeProtectionAudit audit) {
+    OrphanLeafCleanup(ReapwrightPlugin plugin, TreeProtectionAudit audit) {
         this.plugin = plugin;
         this.audit = audit;
     }
 
     void schedule(Player player, List<Block> logs, List<Block> foliage) {
-        if (!plugin.getConfig().getBoolean("tree-feller.orphan-leaf-cleanup", true)) return;
+        if (!plugin.getTreeFellerConfig().getBoolean("tree-feller.orphan-leaf-cleanup", true)) return;
         if (logs.isEmpty() || logs.get(0).getWorld() == null) return;
         World world = logs.get(0).getWorld();
         Box box = Box.around(world, logs, foliage);

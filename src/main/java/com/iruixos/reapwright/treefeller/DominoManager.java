@@ -5,7 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.iruixos.reapwright.ReapwrightPlugin;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public final class DominoManager {
             BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST,
             BlockFace.WEST, BlockFace.UP, BlockFace.DOWN
     };
-    private final JavaPlugin plugin;
+    private final ReapwrightPlugin plugin;
     private final TreeFeller harvester;
     private final java.util.Map<UUID, Session> sessions = new java.util.HashMap<>();
 
@@ -59,21 +59,21 @@ public final class DominoManager {
         }
     }
 
-    DominoManager(JavaPlugin plugin, TreeFeller harvester) {
+    DominoManager(ReapwrightPlugin plugin, TreeFeller harvester) {
         this.plugin = plugin;
         this.harvester = harvester;
     }
 
     boolean enabled() {
-        return plugin.getConfig().getBoolean("tree-feller.domino.enabled", false);
+        return plugin.getTreeFellerConfig().getBoolean("tree-feller.domino.enabled", false);
     }
 
     Session begin(Player player, TreeInspector.Plan plan) {
         Session session = new Session(player, plan.logs().iterator().next().getType(),
-                Math.max(0, Math.min(16, plugin.getConfig().getInt("tree-feller.domino.max-additional-trees", 2))),
-                Math.max(1, Math.min(256, plugin.getConfig().getInt("tree-feller.domino.max-checks-per-tick", 64))),
-                Math.max(1, Math.min(16, plugin.getConfig().getInt("tree-feller.domino.max-search-distance", 8))),
-                plugin.getConfig().getBoolean("tree-feller.domino.allow-mixed-species", false));
+                Math.max(0, Math.min(16, plugin.getTreeFellerConfig().getInt("tree-feller.domino.max-additional-trees", 2))),
+                Math.max(1, Math.min(256, plugin.getTreeFellerConfig().getInt("tree-feller.domino.max-checks-per-tick", 64))),
+                Math.max(1, Math.min(16, plugin.getTreeFellerConfig().getInt("tree-feller.domino.max-search-distance", 8))),
+                plugin.getTreeFellerConfig().getBoolean("tree-feller.domino.allow-mixed-species", false));
         if (session.maximumAdditional == 0) return null;
         cancel(player.getUniqueId());
         markPlan(session, plan);

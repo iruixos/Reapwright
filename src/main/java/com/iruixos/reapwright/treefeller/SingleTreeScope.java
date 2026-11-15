@@ -174,8 +174,9 @@ final class SingleTreeScope {
                     if (b.getType() != clicked.getType()) continue;
                     if (!twoByTwoSpecies) {
                         if (!grounded(b)) continue;
-                        if (b.getRelative(BlockFace.UP).getType() != b.getType()
-                                || b.getRelative(0, 2, 0).getType() != b.getType()) continue;
+                        if ((b.getRelative(BlockFace.UP).getType() != b.getType()
+                                || b.getRelative(0, 2, 0).getType() != b.getType())
+                                && !OffsetTrunkSupport.isOffsetRoot(b)) continue;
                         if (seen.add(x + ":" + z)) roots.add(new Root(x, z, y));
                         break;
                     }

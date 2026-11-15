@@ -22,7 +22,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.iruixos.reapwright.ReapwrightPlugin;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +43,7 @@ public final class TreeFeller implements Listener {
             Material.IRON_AXE, Material.GOLDEN_AXE, Material.DIAMOND_AXE,
             Material.NETHERITE_AXE);
     private static final Set<String> SUPPORTED = Set.of("OAK", "AZALEA", "BIRCH", "SPRUCE", "JUNGLE", "ACACIA", "CHERRY", "POPLAR", "DARK_OAK", "PALE_OAK", "RED_MUSHROOM", "BROWN_MUSHROOM", "MANGROVE", "CRIMSON", "WARPED");
-    private final JavaPlugin plugin;
+    private final ReapwrightPlugin plugin;
     private final TreeInspector inspector = new TreeInspector();
     private final ExoticTreePlanner exoticTreePlanner = new ExoticTreePlanner();
     private final LeafPlanner leafPlanner = new LeafPlanner();
@@ -64,13 +64,33 @@ public final class TreeFeller implements Listener {
     private record BreakAxeOffer(Block origin, ItemStack axe, String token, long expiresAt) { }
     private final Map<UUID, BreakAxeOffer> breakAxeOffers = new HashMap<>();
 
+    public void logStatus() {
+        var config = plugin.getTreeFellerConfig();
+        boolean enabled = config.getBoolean("tree-feller.enabled", false);
+        String blocked = enabled ? protectionAudit.unreadyReason() : null;
+        boolean bonusEnabled = enabled && blocked == null && config.getBoolean("tree-feller.bonus-loot.enabled", true);
+        plugin.getLogger().info("Tree Feller: module " + (enabled ? "enabled" : "disabled")
+                + (blocked == null ? "" : " (automatic felling blocked)")
+                + ", bonus loot " + (bonusEnabled ? "enabled" : "disabled")
+                + ", " + SUPPORTED.size() + " supported tree types.");
+        plugin.getLogger().info("Tree Feller: WorldGuard integration " + integrationStatus("WorldGuard", "worldguard")
+                + ", CoreProtect integration " + integrationStatus("CoreProtect", "coreprotect") + ".");
+        if (blocked != null) plugin.getLogger().warning("Tree Feller: " + blocked);
+    }
+
+    private String integrationStatus(String pluginName, String option) {
+        if (!plugin.getTreeFellerConfig().getBoolean("tree-feller.integrations." + option, false)) return "disabled";
+        return plugin.getServer().getPluginManager().isPluginEnabled(pluginName)
+                ? "enabled" : "disabled (plugin unavailable)";
+    }
+
     /** One-use acknowledgement. Never grants a protection bypass or affects another tree. */
     public void acknowledgeAxeBreak(Player player, String token) {
         BreakAxeOffer offer = breakAxeOffers.remove(player.getUniqueId());
         if (offer == null || !offer.token().equals(token) || System.currentTimeMillis() > offer.expiresAt()
                 || !player.isOnline() || player.getGameMode() != GameMode.SURVIVAL
                 || !player.hasPermission("reapwright.treefeller")
-                || !plugin.getConfig().getBoolean("tree-feller.enabled", false)
+                || !plugin.getTreeFellerConfig().getBoolean("tree-feller.enabled", false)
                 || !player.getInventory().getItemInMainHand().isSimilar(offer.axe())
                 || player.getInventory().getItemInMainHand().getAmount() != offer.axe().getAmount()
                 || !player.getWorld().equals(offer.origin().getWorld())
@@ -96,7 +116,7 @@ public final class TreeFeller implements Listener {
                                 "Accept partial harvesting if the axe breaks. No full-tree bonus loot or replanting.")))));
     }
 
-    public TreeFeller(JavaPlugin plugin) {
+    public TreeFeller(ReapwrightPlugin plugin) {
         this.plugin = plugin;
         this.protectionAudit = new TreeProtectionAudit(plugin);
         this.orphanLeafCleanup = new OrphanLeafCleanup(plugin, protectionAudit);
@@ -136,7 +156,7 @@ public final class TreeFeller implements Listener {
 
     private void notice(Player player, String key, String message) {
         int seconds = Math.max(0, Math.min(60,
-                plugin.getConfig().getInt("tree-feller.message-repeat-cooldown-seconds", 10)));
+                plugin.getTreeFellerConfig().getInt("tree-feller.message-repeat-cooldown-seconds", 10)));
         if (seconds == 0) {
             player.sendMessage(message);
             return;
@@ -154,7 +174,7 @@ public final class TreeFeller implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
-        if (!plugin.getConfig().getBoolean("tree-feller.enabled", false)) return;
+        if (!plugin.getTreeFellerConfig().getBoolean("tree-feller.enabled", false)) return;
         attemptHarvest(event.getPlayer(), event.getBlock(), event, null, false);
     }
 
@@ -164,7 +184,7 @@ public final class TreeFeller implements Listener {
     }
 
     private boolean attemptHarvest(Player player, Block origin, BlockBreakEvent event, DominoManager.Session dominoSession, boolean acknowledgedAxeBreak) {
-        if (!plugin.getConfig().getBoolean("tree-feller.enabled", false)) return false;
+        if (!plugin.getTreeFellerConfig().getBoolean("tree-feller.enabled", false)) return false;
         boolean domino = dominoSession != null;
         if (!(origin.getType().name().endsWith("_LOG") || origin.getType() == Material.MUSHROOM_STEM
                 || origin.getType()==Material.CRIMSON_STEM || origin.getType()==Material.WARPED_STEM
@@ -181,12 +201,12 @@ public final class TreeFeller implements Listener {
                 || origin.getType()==Material.MUDDY_MANGROVE_ROOTS;
         boolean exotic = rootInitiated || origin.getType()==Material.MANGROVE_LOG
                 || origin.getType()==Material.CRIMSON_STEM || origin.getType()==Material.WARPED_STEM;
-        boolean harvestLeaves = plugin.getConfig().getBoolean("tree-feller.break-leaves", true);
+        boolean harvestLeaves = plugin.getTreeFellerConfig().getBoolean("tree-feller.break-leaves", true);
         ExoticTreePlanner.Selection special = !exotic ? null : rootInitiated
                 ? exoticTreePlanner.scanFromMangroveRoot(origin,harvestLeaves)
                 : exoticTreePlanner.scan(origin,harvestLeaves);
         if(exotic && special.valid() && special.diagnostics()!=null
-                && plugin.getConfig().getBoolean("tree-feller.mangrove-debug",false)){
+                && plugin.getTreeFellerConfig().getBoolean("tree-feller.mangrove-debug",false)){
             plugin.getLogger().info(special.diagnostics());
         }
         if(exotic && !special.valid()){
@@ -194,7 +214,7 @@ public final class TreeFeller implements Listener {
             return false;
         }
         TreeInspector.Plan inspected = exotic ? special.inspection()
-                : inspector.plan(origin, plugin.getConfig(), false);
+                : inspector.plan(origin, plugin.getTreeFellerConfig(), false);
         TreeInspector.Result result = inspected.result();
         if (!result.valid()) {
             if ("MULTIPLE_CONNECTED_TRUNKS".equals(result.reason())) {
@@ -226,7 +246,7 @@ public final class TreeFeller implements Listener {
             if (event != null) event.setCancelled(true);
             Pending old = pending.get(player.getUniqueId());
             long now = System.currentTimeMillis();
-            long period = 1000L * Math.max(1, plugin.getConfig().getInt(
+            long period = 1000L * Math.max(1, plugin.getTreeFellerConfig().getInt(
                     "tree-feller.confirmation.attachment-second-break-window-seconds", 15));
             if (old == null || !old.block().equals(origin) || old.expiresAt() < now) {
                 pending.put(player.getUniqueId(), new Pending(origin, now + period));
@@ -252,7 +272,7 @@ public final class TreeFeller implements Listener {
         Material expectedLogType = rootInitiated ? Material.MANGROVE_LOG : origin.getType();
         LeafPlanner.Selection selectedLeaves = exotic
                 ? new LeafPlanner.Selection(special.foliage(),null)
-                : harvestLeaves ? leafPlanner.select(inspected, plugin.getConfig())
+                : harvestLeaves ? leafPlanner.select(inspected, plugin.getTreeFellerConfig())
                 : new LeafPlanner.Selection(Set.of(), null);
         if (!selectedLeaves.valid()) {
             if (!domino) notice(player, ReapwrightChat.PREFIX + "§e Tree Feller skipped: " + selectedLeaves.rejection()
@@ -262,7 +282,7 @@ public final class TreeFeller implements Listener {
         Set<Block> foliage = new java.util.LinkedHashSet<>(selectedLeaves.leaves());
         int orphanPlanned = 0;
         if (!mushroom && !exotic && !foliage.isEmpty()) {
-            OrphanLeafPlanner.Selection orphans = orphanLeafPlanner.select(logs, foliage, plugin.getConfig());
+            OrphanLeafPlanner.Selection orphans = orphanLeafPlanner.select(logs, foliage, plugin.getTreeFellerConfig());
             if (!orphans.valid()) {
                 if (!domino) notice(player, ReapwrightChat.PREFIX + "§e Tree Feller skipped: " + orphans.rejection());
                 return false;
@@ -271,7 +291,7 @@ public final class TreeFeller implements Listener {
             foliage.addAll(orphans.leaves());
         }
         final int orphanCount = orphanPlanned;
-        boolean harvestSnow = harvestLeaves && plugin.getConfig().getBoolean(
+        boolean harvestSnow = harvestLeaves && plugin.getTreeFellerConfig().getBoolean(
                 "tree-feller.experimental-harvesting.leaves.clear-snow-layers", true);
         SnowPlanner.Selection selectedSnow = harvestSnow && !exotic
                 ? snowPlanner.select(inspected.logs(), foliage)
@@ -282,7 +302,7 @@ public final class TreeFeller implements Listener {
         }
         AttachmentPlanner.Selection selectedAttachments = exotic
                 ? new AttachmentPlanner.Selection(special.attachments().keySet(),special.attachments(),null)
-                : attachmentPlanner.select(result.species(), result.twoByTwo(), logs, foliage, plugin.getConfig());
+                : attachmentPlanner.select(result.species(), result.twoByTwo(), logs, foliage, plugin.getTreeFellerConfig());
         if (!selectedAttachments.valid()) {
             if (!domino) notice(player, ReapwrightChat.PREFIX + "§e Tree Feller skipped: " + selectedAttachments.rejection());
             return false;
@@ -299,13 +319,13 @@ public final class TreeFeller implements Listener {
             if (!domino) notice(player, ReapwrightChat.PREFIX + "§e A bee nest could not be safely assigned to this tree.");
             return false;
         }
-        boolean replantEnabled = plugin.getConfig().getBoolean(
+        boolean replantEnabled = plugin.getTreeFellerConfig().getBoolean(
                 "tree-feller.auto-replant", true);
         // Separate the shared log/leaf harvest from each grounded tree's
         // original pre-harvest planting footprint. No post-harvest re-scans.
         ConnectedTreePlanner.Selection cluster = mushroom || exotic
                 ? new ConnectedTreePlanner.Selection(List.of(), null)
-                : connectedTreePlanner.select(inspected, plugin.getConfig());
+                : connectedTreePlanner.select(inspected, plugin.getTreeFellerConfig());
         if (!cluster.valid()) {
             if (!domino) notice(player, ReapwrightChat.PREFIX + "§e Tree Feller skipped: " + cluster.rejection());
             return false;
@@ -421,7 +441,7 @@ public final class TreeFeller implements Listener {
             try {
                 Player current = plugin.getServer().getPlayer(owner);
                 if (current == null || !current.isOnline() || !current.getWorld().getUID().equals(world)
-                        || !plugin.getConfig().getBoolean("tree-feller.enabled", false)) return;
+                        || !plugin.getTreeFellerConfig().getBoolean("tree-feller.enabled", false)) return;
                 ItemStack held = current.getInventory().getItemInMainHand();
                 if (!held.isSimilar(toolAtBreak) || held.getAmount() != toolAtBreak.getAmount()
                         || !(held.getItemMeta() instanceof Damageable currentDamage)) {
@@ -574,7 +594,7 @@ public final class TreeFeller implements Listener {
                         if (leaf.getType() == Material.AIR) {
                             leafRemoved++;
                             protectionAudit.removed(current, originalLeaf);
-                            pendingDrops.put(leaf, saplingDrops.adjust(plugin.getConfig(), result.species(),
+                            pendingDrops.put(leaf, saplingDrops.adjust(plugin.getTreeFellerConfig(), result.species(),
                                     foliageTypeForDrop, toolAtBreak, calculated));
                         } else {
                             leafFailures++;
@@ -653,10 +673,10 @@ public final class TreeFeller implements Listener {
                         index++;
                         String outcome=planting.site()==null ? planting.reason()
                             : replanter.plant(planting.site(), pendingDrops, current,
-                                plugin.getConfig().getBoolean(
+                                plugin.getTreeFellerConfig().getBoolean(
                                     "tree-feller.experimental-harvesting.replanting.use-inventory-fallback", true),
                                 toolAtBreak.containsEnchantment(Enchantment.SILK_TOUCH)
-                                        && plugin.getConfig().getBoolean("tree-feller.free-silk-touch-replant", true),
+                                        && plugin.getTreeFellerConfig().getBoolean("tree-feller.free-silk-touch-replant", true),
                                 protectionAudit);
                         if (planting.site() == null && planting.reason().startsWith("UNEVEN_2X2_BASE")) {
                             // Player-only explanation; the terrain is never flattened automatically.
@@ -683,7 +703,7 @@ public final class TreeFeller implements Listener {
                         && attachmentRemoved == attachmentPlan.size()
                         && snowRemoved == snowPlan.size()
                         && specialRemoved == specialBlocks.blocks().size()) {
-                    for (ItemStack bonus : bonusLoot.roll(plugin.getConfig(), result.species(), toolAtBreak)) {
+                    for (ItemStack bonus : bonusLoot.roll(plugin.getTreeFellerConfig(), result.species(), toolAtBreak)) {
                         origin.getWorld().dropItemNaturally(origin.getLocation(), bonus);
                     }
                 }
@@ -717,7 +737,7 @@ public final class TreeFeller implements Listener {
                             + ": " + removed + "/" + plan.size()
                             + " logs harvested. No bonus loot or replanting.");
                 }
-                boolean debugMessages = plugin.getConfig().getBoolean("tree-feller.debug-messages", false);
+                boolean debugMessages = plugin.getTreeFellerConfig().getBoolean("tree-feller.debug-messages", false);
                 if (debugMessages) {
                     if (replantEnabled) current.sendMessage(ReapwrightChat.PREFIX + "§b Replanting: " + replantResult + ".");
                     if (!specialBlocks.blocks().isEmpty()) current.sendMessage(ReapwrightChat.PREFIX + "§b Special blocks harvested: " + specialRemoved + ".");

@@ -424,6 +424,43 @@ public final class TreeInspector {
                 if (!changed) break;
             }
         }
+        // Recover verified Acacia staircases and Azalea bends from either
+        // side of the offset before counting trunk logs.
+        if (OffsetTrunkSupport.eligible(start) && !overflow && unloaded == 0) {
+            int offsetPasses = start.getType() == Material.ACACIA_LOG
+                    ? OffsetTrunkSupport.MAX_ACACIA_RISE : 3;
+            for (int pass = 0; pass < offsetPasses && !overflow; pass++) {
+                List<Block> bridges = new ArrayList<>();
+                for (Block current : new ArrayList<>(logs)) {
+                    for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
+                        if (Math.abs(dx) + Math.abs(dz) != 1) continue;
+                        for (int dy : new int[]{-1, 1}) {
+                            Block candidate = current.getRelative(dx, dy, dz);
+                            if (!inBounds(start, candidate, radius) || !loaded(candidate)
+                                    || logs.contains(candidate) || candidate.getType() != start.getType()) continue;
+                            Block lower = dy > 0 ? current : candidate;
+                            Block upper = dy > 0 ? candidate : current;
+                            if (OffsetTrunkSupport.isBend(lower, upper)) bridges.add(candidate);
+                        }
+                    }
+                }
+                if (bridges.isEmpty()) break;
+                int before = logs.size();
+                for (Block bridge : bridges) {
+                    if (logs.contains(bridge)) continue;
+                    if (logs.size() >= maxLogs) { overflow = true; break; }
+                    logs.add(bridge);
+                    // Bring in the complete ordinary face-connected column,
+                    // still bounded by the existing selected-tree ownership.
+                    Completion completed = completeFaceComponent(start, logs, radius, maxLogs);
+                    overflow |= completed.overflow();
+                    unloaded += completed.unloaded();
+                    diagonal++;
+                    if (overflow || unloaded > 0) break;
+                }
+                if (logs.size() == before || unloaded > 0) break;
+            }
+        }
         // Cherry, oak, acacia, dark oak and pale oak can generate crown branches connected by corners rather
         // than faces. Discover those branches *before* calculating canopy and validity.
         // A diagonal jump is allowed only above the lower trunk, with matching natural

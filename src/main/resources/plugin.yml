@@ -1,11 +1,11 @@
 name: Reapwright
-version: '2.0.0-RC1'
+version: '2.1.0-RC1'
 main: com.iruixos.reapwright.ReapwrightPlugin
 api-version: '26.3'
 author: iruixos
 folia-supported: false
-softdepend: [WorldGuard, CoreProtect]
-description: Near-vanilla crop harvesting and configurable tree felling with replanting.
+softdepend: [WorldGuard, CoreProtect, Veinminer]
+description: Near-vanilla crop harvesting, tree felling and optional mining bonus loot.
 commands:
   reapwright:
     description: Reapwright administration
@@ -16,6 +16,9 @@ permissions:
     default: true
   reapwright.treefeller:
     description: Allows opt-in Tree Feller harvesting
+    default: true
+  reapwright.mining:
+    description: Allows bonus loot from configured rock mining when enabled
     default: true
   reapwright.admin:
     description: Allows reloading Reapwright configuration
