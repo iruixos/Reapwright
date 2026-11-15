@@ -5,7 +5,7 @@
 **Reapwright** is a lightweight, near-vanilla farming, forestry, and mining quality-of-life plugin for **Paper servers**. Harvest mature crops with a configured hoe and automatically replant them, or optionally fell natural trees, huge mushrooms, and Nether fungi with an axe. Crop harvesting supports configurable areas from **1×1 to 9×9**; Tree Feller and Mining are both **disabled by default**.
 
 > [!IMPORTANT]
-> **2.1.0-RC1 (Release Candidate).** Intended for controlled testing. Back up your world and inventories before testing Tree Feller. WorldGuard/CoreProtect integrations and recovery from unexpected mid-harvest failures have not been fully verified.
+> Back up your world and inventories before testing Tree Feller & Mining. Live WorldGuard and CoreProtect integration testing is pending, and an interrupted harvest can leave partial changes. Veinminer compatability should be good to go.
 
 ## Features
 
@@ -78,12 +78,11 @@ All crops must be fully mature. Adding arbitrary material names to `enabled-crop
 
 ## Installation
 
-1. Download or build `reapwright-2.1.0-RC1.jar`.
+1. Download the plugin JAR from [GitHub Releases](https://github.com/iruixos/Reapwright/releases), or [build it from source](#building-from-source).
 2. Stop Paper, remove the older Reapwright JAR, and place the new JAR in `plugins/`.
 3. Start Paper. Reapwright creates missing config files in `plugins/Reapwright/` and migrates supported legacy configs. See [Configuration](#configuration) for upgrade details.
 4. Enable Tree Feller in `config-treefeller.yml` or Mining in `config-mining.yml` as desired. Review the Tree Feller integration settings if your server uses WorldGuard or CoreProtect.
 5. Run `/reapwright reload` after editing the YAML files.
-
 
 ## Usage
 
@@ -249,7 +248,9 @@ In `config-mining.yml`, set `enabled: true` and run `/reapwright reload`. The `b
 | `world-drops.<world>` | Replaces both dimension tables for the exact world name. Use an empty mapping to disable rewards for that world. |
 | `fortune-quantity-multipliers` | Mining defaults are Fortune I ×1.25, II ×1.667, and III ×2.0. |
 
-Each reward uses `chance` (percent), `min`, and `max`. Paper or Veinminer supplies the usual block drops and XP. Silk Touch skips Reapwright bonuses. Ancient Debris also skips bonuses, including rewards specified in older configs. Player-placed or generator-produced stone can qualify by material.
+Stone, Granite, Diorite, and Andesite share the same default bonus chances and quantities. Each reward uses `chance` (percent), `min`, and `max`. Paper or Veinminer supplies the usual block drops and XP. Silk Touch skips Reapwright bonuses. Ancient Debris also skips bonuses, including rewards specified in older configs. Player-placed or generator-produced stone can qualify by material.
+
+**Updating Mining defaults.** To adopt the bundled balance on an existing install, copy the `drops` and `ore-drops` sections into your server’s `config-mining.yml` and run `/reapwright reload`. Keep your existing `world-drops` overrides and any custom entries you want to retain.
 
 **Veinminer.** The starting block uses Paper's normal drop event. Each eligible additional block rolls its bonus using the starting pickaxe's Fortune and Veinminer's drop location. The starting break must be identifiable within five minutes of server ticks. Configure the block in Veinminer as well as Reapwright. If Veinminer Enchantment is installed, its enchantment requirement still governs veinmining.
 
@@ -318,7 +319,7 @@ If testing with one of these plugins installed, back up the world, explicitly en
 - **Terrain and replanting:** Replanting depends on valid terrain and planting positions; 2×2 trees cannot always be replanted on uneven ground.
 - **Custom durability mechanics:** Reapwright applies its own wear logic; third-party durability-modification plugins may behave differently.
 - **Folia:** Not supported.
-- **Release verification:** The Java 25 Maven build and Paper 26.3 startup and reload smoke tests passed. Connected-client Veinminer and live WorldGuard/CoreProtect integration tests are outside that verification.
+- **Veinminer testing:** The integration has been checked in server-side tests. Connected-client testing is still pending.
 
 ## Building from source
 
@@ -328,14 +329,13 @@ Run from the project root containing `pom.xml`:
 mvn clean package
 ```
 
-Expected output: `target/reapwright-2.1.0-RC1.jar`.
+The build writes the plugin JAR to `target/`. Its filename uses the version declared in `pom.xml`.
 
-The project targets **Java 25** and Paper API `26.3.build.244-stable`. WorldGuard and CoreProtect are optional compile-time `provided` dependencies; they are not bundled with Reapwright. Refer to [`RELEASE-NOTES-2.0.0-RC1.md`](RELEASE-NOTES-2.0.0-RC1.md) for the earlier 2.0.0 release candidate summary and [`docs/development/`](docs/development/) for historical development notes.
+The project targets **Java 25** and Paper API `26.3.build.244-stable`. WorldGuard and CoreProtect are optional compile-time `provided` dependencies; they are not bundled with Reapwright. See [GitHub Releases](https://github.com/iruixos/Reapwright/releases) for release notes and [`docs/development/`](docs/development/) for historical development notes.
 
 ## Project information
 
 - **Plugin:** Reapwright
-- **Version:** 2.1.0-RC1
 - **Author:** iruixos
 - **Platform:** Paper
 - **Package:** `com.iruixos.reapwright`
