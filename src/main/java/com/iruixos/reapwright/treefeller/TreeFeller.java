@@ -11,6 +11,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.enchantments.Enchantment;
@@ -60,7 +61,7 @@ public final class TreeFeller implements Listener {
     private final Map<UUID, Pending> pending = new HashMap<>();
     private final Map<UUID, Map<String, Long>> lastNotice = new HashMap<>();
     private final Set<Block> reservedBlocks = new HashSet<>();
-    private record Pending(Block block, long expiresAt) { }
+    private record Pending(Block block, BlockData blockData, long expiresAt) { }
     private record BreakAxeOffer(Block origin, ItemStack axe, String token, long expiresAt) { }
     private final Map<UUID, BreakAxeOffer> breakAxeOffers = new HashMap<>();
 
@@ -175,7 +176,24 @@ public final class TreeFeller implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         if (!plugin.getTreeFellerConfig().getBoolean("tree-feller.enabled", false)) return;
-        attemptHarvest(event.getPlayer(), event.getBlock(), event, null, false);
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
+        if (consumeAttachmentWarning(player.getUniqueId(), block)) return;
+        attemptHarvest(player, block, event, null, false);
+    }
+
+    private boolean consumeAttachmentWarning(UUID player, Block block) {
+        Pending warning = pending.get(player);
+        if (warning == null) return false;
+        if (warning.expiresAt() < System.currentTimeMillis()) {
+            pending.remove(player);
+            return false;
+        }
+        if (!warning.block().equals(block)) return false;
+
+        pending.remove(player);
+        // This acknowledgement leaves the original break event to Paper.
+        return warning.blockData().equals(block.getBlockData());
     }
 
     /** Uses the same validation and execution pipeline for a domino candidate; never fires a fake break event. */
@@ -240,25 +258,16 @@ public final class TreeFeller implements Listener {
             return false;
         }
         if (result.attachments() > 0) {
-            if (domino) return false; // No implicit acknowledgement of player-made attachments.
-            // A second break is a warning acknowledgement, never permission to bypass
-            // unsupported attachment drops or the tree safety validator.
-            if (event != null) event.setCancelled(true);
-            Pending old = pending.get(player.getUniqueId());
-            long now = System.currentTimeMillis();
-            long period = 1000L * Math.max(1, plugin.getTreeFellerConfig().getInt(
+            if (event == null) return false; // Never acknowledge attachments during an automated harvest.
+            event.setCancelled(true);
+            int seconds = Math.max(1, plugin.getTreeFellerConfig().getInt(
                     "tree-feller.confirmation.attachment-second-break-window-seconds", 15));
-            if (old == null || !old.block().equals(origin) || old.expiresAt() < now) {
-                pending.put(player.getUniqueId(), new Pending(origin, now + period));
-                player.sendMessage(ReapwrightChat.PREFIX + "§e Potential player-made attachments detected. Break the SAME log again within "
-                        + (period / 1000) + " seconds to acknowledge the warning.");
-            } else {
-                pending.remove(player.getUniqueId());
-                player.sendMessage(ReapwrightChat.PREFIX + "§c Attachment drop preservation is not implemented; no tree blocks were removed.");
-            }
+            pending.put(player.getUniqueId(), new Pending(origin, origin.getBlockData(),
+                    System.currentTimeMillis() + 1000L * seconds));
+            player.sendMessage(ReapwrightChat.PREFIX + "§e Potential player-made attachments detected. Break the same block again within "
+                    + seconds + " seconds to break it normally.");
             return false;
         }
-        pending.remove(player.getUniqueId());
         if (!protectionAudit.ready()) {
             if (!domino) notice(player, ReapwrightChat.PREFIX + "§c " + protectionAudit.unreadyReason());
             return false;
